@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////
-// Author: Gyorgy Wyatt Muntean 2017
+// Credit Vincent Lee
 // Create Date: 04/24/2017 6:26pm
 //
 // Description: The circuit represents a dot product of two vectors in the stochastic domain.
