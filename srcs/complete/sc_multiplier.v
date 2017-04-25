@@ -11,15 +11,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module sc_multiplier( 
-   x, 
-   y, 
-   z 
+   input x, 
+   input y, 
+   output res
 );
 
-   input x;
-   input y;
+   assign res = x & y;
 
-   assign z = x & y;
-
-   output z;
 endmodule
