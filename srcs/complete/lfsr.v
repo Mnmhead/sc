@@ -45,10 +45,10 @@ module lfsr(
 		     (DATA_WIDTH == 32) ? shift_regs[31] ^ shift_regs[30] ^ shift_regs[29] ^ shift_regs[9] :
 		     0;
    
-   //shifting logic
+   // shifting logic
    generate
       for (i = 0; i < DATA_WIDTH; i = i + 1) begin: lfsr_loop
-	 //always insert a 1 in the front on reset
+	 // always insert a 1 in the front on reset
 	 if (i == 0) begin
 	    always @ (posedge clk) begin
 	       if (rst == 1) shift_regs[i] <= 1;
@@ -62,7 +62,7 @@ module lfsr(
 	       else shift_regs[i] <= shift_regs[i-1];
 	    end	    
 	 end
-      end // for (i = 0; i < DATA_WIDTH; i = i + 1)
+      end
    endgenerate
 
    assign out = shift_regs;

@@ -2,7 +2,7 @@
 // Author: Vincent Lee
 // Create Date: 04/21/2017 6:28pm
 //
-// Description: Conventional stochastic adder. Intellectual property of Armin Alaghi.
+// Description: A non-conventional stochastic adder. Intellectual property of Armin Alaghi.
 // For more information on stochastic computing: 
 // https://en.wikipedia.org/wiki/Stochastic_computing
 //////////////////////////////////////////////////////////////////////////////////
@@ -31,4 +31,4 @@ module alaghi_adder(clk, rst, x, y, out);
 
    assign out = (xor_input == 1) ? tff : y;
    
-endmodule // alaghi_add
+endmodule // alaghi_adder
