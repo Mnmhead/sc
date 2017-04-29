@@ -16,7 +16,7 @@ module sc_adder(
    input y,
    input sel,
    output out
-)
+);
 
    assign out = (sel == 0) ? x : y;
 

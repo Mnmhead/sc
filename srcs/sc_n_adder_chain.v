@@ -31,6 +31,7 @@ module sc_n_adder_chain #(
                               .data_in(inputs[shift]), 
                               .data_out(shifted_element[shift-2]), 
                               .shift(shift-1));
+      end
    endgenerate
 
    // add first two elements

@@ -14,8 +14,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module sc_matrix_mult #(
-   parameter BATCH_SIZE = 4 // M
-   parameter INPUT_FEATURES = 4 // N
+   parameter BATCH_SIZE = 4, // M
+   parameter INPUT_FEATURES = 4, // N
    parameter OUTPUT_FEATURES = 4 // O
 ) (
    input clk,
@@ -40,7 +40,7 @@ module sc_matrix_mult #(
                                               .data(inputStreams[i*INPUT_FEATURES +: INPUT_FEATURES]),
                                               .weights(weightStreams[j*INPUT_FEATURES +: INPUT_FEATURES]),
                                               .sel(sel),
-                                              .result(outputStream[(i*OUTPUT_FEATURES)+j]));
+                                              .result(outputStreams[(i*OUTPUT_FEATURES)+j]));
          end
       end
    endgenerate
