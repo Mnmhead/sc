@@ -59,8 +59,12 @@ def cli():
    )
    """
    parser.add_argument(
-      '-p', dest='rep', action'store', type=str, required=False,
+      '-p', dest='rep', action='store', type=str, required=False,
       default='uni', help='Type of stochastic representation, options are Uni or Bi'
+   )
+   parser.add_argument(
+      '-alaghi', dest='alaghi', action='store', type=bool, required=False,
+      default=False, help='Switches to alaghi adders instead of conventional sc adders'
    )
 
    # Argument validation
