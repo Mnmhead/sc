@@ -22,20 +22,25 @@ module sc_dot_product #(
    output result
 );
 
-   // multipication modules, for element wise multiply of data and weights
+   // multipication modules, for element wise multiplication of data and weights
    genvar i;
-   wire [LENGTH-1:0] product_stream;
+   wire [LENGTH-1:0] mult_out;
    generate
       for( i = 0; i < LENGTH; i = i + 1) begin : mult
-         sc_multiplier(.x(data[i]), .y(weights[i]), .res(product_stream[i]));
+         sc_multiplier(.x(data[i]), .y(weights[i]), .res(mult_out[i]));
       end
    endgenerate
 
-   // add all element wise products
+   // direct multiplication output to an intermediate register
+   reg [LENGTH-1:0] product_stream;
+   always @(posedge clk) begin
+      product_stream <= mult_out;
+   end
+
+   // add all element-wise products
    sc_n_adder_chain #(LENGTH) (.clk(clk),
                                .rst(rst),
                                .inputs(product_stream),
                                .sel(sel),
                                .sum(result));
-
 endmodule // sc_dot_product

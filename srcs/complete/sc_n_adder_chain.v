@@ -28,9 +28,9 @@ module sc_n_adder_chain #(
       for(shift = 2; shift < N; shift = shift + 1) begin : shiftReg
          shift_register SHIFT(.clk(clk), 
                               .rst(rst), 
-                              .data_in(inputs[i]), 
+                              .data_in(inputs[shift]), 
                               .data_out(shifted_element[shift-2]), 
-                              .shift(i-1));
+                              .shift(shift-1));
    endgenerate
 
    // add first two elements

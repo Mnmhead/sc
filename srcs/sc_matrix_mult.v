@@ -13,21 +13,39 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-// right now im thinking we could read in the entirity of both matrices and then
-// write the entirity of one matrix...because a stochastic matrix is just N*M bits.
-//
-// Hold up...do we even need to write an output matrix to memory? Probably, but its weird to
-// think of it like this, because one needs a stream that represents the matrix. (would have to write a whole matrix every cycle).
-
 module sc_matrix_mult #(
    parameter BATCH_SIZE = 4 // M
    parameter INPUT_FEATURES = 4 // N
    parameter OUTPUT_FEATURES = 4 // O
 ) (
    input clk,
-   input [BATCH_SIZE*INPUT_FEATURES-1:0] inputData,
-   input [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightData,
-   output [BATCH_SIZE*OUTPUT_FEATURES-1:0] outputData
+   input rst,
+   input [BATCH_SIZE*INPUT_FEATURES-1:0] inputStreams,
+   input [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams,
+   input [INPUT_FEATURES-2:0] sel,
+   output [BATCH_SIZE*OUTPUT_FEATURES-1:0] outputStreams,
+   output valid
 );
+
+   // Instantiate M*O dot product modules, so all computation is done in
+   // parallel. All modules will begin to output after some latency, then
+   // valid will be set to high and outputStreams will hold the stochastic
+   // bitstreams of the output features.
+   genvar i, j;
+   generate
+      for( i = 0; i < BATCH_SIZE; i = i + 1) begin 
+         for( j = 0; j < OUTPUT_FEATURES; j = j + 1) begin : dot_prod_loop
+            sc_dot_product #(INPUT_FEATURES) (.clk(clk), 
+                                              .rst(rst), 
+                                              .data(inputStreams[i*INPUT_FEATURES +: INPUT_FEATURES]),
+                                              .weights(weightStreams[j*INPUT_FEATURES +: INPUT_FEATURES]),
+                                              .sel(sel),
+                                              .result(outputStream[(i*OUTPUT_FEATURES)+j]));
+         end
+      end
+   endgenerate
+  
+   // later we will incorporate this signal 
+   assign valid = 1;
 
 endmodule // sc_matrix_mult

@@ -18,6 +18,6 @@ module sc_adder(
    output out
 )
 
-   assign out = (sel ==0) ? x : y;
+   assign out = (sel == 0) ? x : y;
 
 endmodule // sc_adder
