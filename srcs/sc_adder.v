@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) Gyorgy Wyatt Muntean 2017
+// Credit Vincent Lee
 // Create Date: 04/10/2017 4:12pm
 //
 // Description: The circuit represents an adder in the stochastic domain. 
