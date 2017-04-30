@@ -11,6 +11,8 @@
 // For more information on stochastic computing: 
 // https://en.wikipedia.org/wiki/Stochastic_computing
 //
+// Requirement: parameter INPUT_FEATURES, N, must be a power of 2.
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 module sc_matrix_mult #(
@@ -18,14 +20,36 @@ module sc_matrix_mult #(
    parameter INPUT_FEATURES = 4, // N
    parameter OUTPUT_FEATURES = 4 // O
 ) (
-   input clk,
-   input rst,
-   input [BATCH_SIZE*INPUT_FEATURES-1:0] inputStreams,
-   input [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams,
-   input [INPUT_FEATURES-2:0] sel,
-   output [BATCH_SIZE*OUTPUT_FEATURES-1:0] outputStreams,
-   output valid
+   clk,
+   rst,
+   inputStreams,
+   weightStreams,
+   sel,
+   outputStreams,
+   outputWriteEn
 );
+
+   // Helper function to set the number of select streams needed
+   function integer clogb2;
+      input [31:0] value;
+      begin
+         value = value - 1;
+         for (clogb2 = 0; value > 0; clogb2 = clogb2 + 1) begin
+            value = value >> 1;
+         end
+      end
+   endfunction
+
+   parameter SELECT_WIDTH = clogb2(INPUT_STREAMS)
+
+   // inputs and outputs
+   input                                      clk;
+   input                                      rst;
+   input [BATCH_SIZE*INPUT_FEATURES-1:0]      inputStreams;
+   input [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams;
+   input [SELECT_WIDTH-1:0]                 sel;
+   output [BATCH_SIZE*OUTPUT_FEATURES-1:0]    outputStreams;
+   output                                     outputWriteEn;
 
    // Instantiate M*O dot product modules, so all computation is done in
    // parallel. All modules will begin to output after some latency, then
@@ -46,6 +70,6 @@ module sc_matrix_mult #(
    endgenerate
   
    // later we will incorporate this signal 
-   assign valid = 1;
+   assign outputWriteEn = 1;
 
 endmodule // sc_matrix_mult

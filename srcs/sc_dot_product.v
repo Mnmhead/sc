@@ -12,15 +12,36 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module sc_dot_product #(
-   parameter LENGTH = 3
+   parameter LENGTH = 4
 ) (
-   input clk,
-   input rst,
-   input [LENGTH-1:0] data,
-   input [LENGTH-1:0] weights,
-   input [LENGTH-1:0] sel,
-   output result
+   clk,
+   rst,
+   data,
+   weights,
+   sel,
+   result
 );
+
+   // Helper function to set the number of select streams needed
+   function integer clogb2;
+      input [31:0] value;
+      begin
+         value = value - 1;
+         for (clogb2 = 0; value > 0; clogb2 = clogb2 + 1) begin
+            value = value >> 1;
+         end
+      end
+   endfunction
+
+   parameter SELECT_WIDTH = clogb2(LENGTH)
+
+   // inputs and outputs
+   input                    clk;
+   input                    rst;
+   input [LENGTH-1:0]       data;
+   input [LENGTH-1:0]       weights;
+   input [SELECT_WIDTH-1:0] sel;
+   output                   result;
 
    // multipication modules, for element wise multiplication of data and weights
    genvar i;
@@ -32,15 +53,12 @@ module sc_dot_product #(
    endgenerate
 
    // direct multiplication output to an intermediate register
-   reg [LENGTH-1:0] product_stream;
+   reg [LENGTH-1:0] product_streams;
    always @(posedge clk) begin
-      product_stream <= mult_out;
+      product_streams <= mult_out;
    end
 
    // add all element-wise products
-   sc_n_adder_chain #(LENGTH) (.clk(clk),
-                               .rst(rst),
-                               .inputs(product_stream),
-                               .sel(sel),
-                               .sum(result));
+   sc_nadder #(LENGTH) (.x(product_streams), .sel(sel), .out(result));
+
 endmodule // sc_dot_product
