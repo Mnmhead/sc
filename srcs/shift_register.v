@@ -1,41 +1,42 @@
-module shift_register(clk, rst, data_in, data_out, shift);
+//////////////////////////////////////////////////////////////////////////////////
+// Credit Vincent Lee
+// Create Date: 04/29/2017 5:23pm
+//
+// Description: The circuit represents a 1-bit width shift register.
+// Depth is parameterizeable by the parameter DEPTH.
+//////////////////////////////////////////////////////////////////////////////////
 
-   parameter DEPTH = 1;
-   parameter DATA_WIDTH = 8;
+module shift_register(
+   parameter DEPTH = 1
+) (
+   input clk, 
+   input rst, 
+   input data_in, 
+   output data_out
+);
 
-   input clk;
-   input rst;
-   input [DATA_WIDTH-1:0] data_in;
-   output [DATA_WIDTH-1:0] data_out;
-   input 		   shift;
-         
    genvar i;
 
-   reg [DATA_WIDTH-1:0] internal_registers [DEPTH-1:0];
+   reg internal_registers [DEPTH-1:0];
 
-   //assign first register
+   // assign first register
    always @ (posedge clk) begin
       if (rst == 1)
-	internal_registers[0] <= 0;
-      else if (shift == 1)
-	internal_registers[0] <= data_in;
+	      internal_registers[0] <= 0;
       else
-	internal_registers[0] <= internal_registers[0];
+	      internal_registers[0] <= data_in;
    end
 
    generate
       for (i = 1; i < DEPTH; i = i + 1) begin: sr_loop
-	 always @ (posedge clk) begin
-	    if (rst == 1)
-	      internal_registers[i] <= 0;
-	    else if (shift == 1)
-	      internal_registers[i] <= internal_registers[i-1];
-	    else
-	      internal_registers[i] <= internal_registers[i];
-	 end
+	      always @ (posedge clk) begin
+	         if (rst == 1)
+	            internal_registers[i] <= 0;
+	         else
+               (shift == 1)
+	      end
       end
    endgenerate
 
    assign data_out = internal_registers[DEPTH-1];
-      
 endmodule // shift_register
