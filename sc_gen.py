@@ -12,7 +12,7 @@ def generate_module( args ):
    M = args.batch_size
    N = args.input_size
    O = args.output_size
-   
+   pass
 
 # Function which opens and writes testbench files for the verilog modules
 # generated (and specified by the users input arguments).
@@ -34,7 +34,7 @@ def cli():
    )
    parser.add_argument(
       '-name', dest='module_name', action='store', type=str, required=False,
-      default='sc_matrix_mult', help='Name prefix for all generated modules'
+      default='sc_matrix_mult', help='Name sufix for all generated modules'
    )
    parser.add_argument(
       '-bs', dest='batch_size', action='store', type=int, required=False,
@@ -73,6 +73,9 @@ def cli():
       exit()
    if ( not os.path.isdir( args.dest_dir ) ):
       print( "ERROR: dst={} is not a valid path".format( args.dest_dir ) )
+      exit()
+   if ( not powerOf2( args.input_size ) ):
+      print( "Usage: -is input must be a power of 2" )
       exit()
   
    return args 
