@@ -26,11 +26,10 @@ module sc_n_adder_chain #(
    generate
       // shift n-2 inputs (first two inputs are fed directly into adder).
       for(shift = 2; shift < N; shift = shift + 1) begin : shiftReg
-         shift_register SHIFT(.clk(clk), 
-                              .rst(rst), 
-                              .data_in(inputs[shift]), 
-                              .data_out(shifted_element[shift-2]), 
-                              .shift(shift-1));
+         shift_register #(shift-1) SHIFT(.clk(clk), 
+                                   .rst(rst), 
+                                   .data_in(inputs[shift]), 
+                                   .data_out(shifted_element[shift-2]));
       end
    endgenerate
 

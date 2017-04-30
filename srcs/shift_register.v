@@ -6,7 +6,7 @@
 // Depth is parameterizeable by the parameter DEPTH.
 //////////////////////////////////////////////////////////////////////////////////
 
-module shift_register(
+module shift_register #(
    parameter DEPTH = 1
 ) (
    input clk, 
@@ -14,8 +14,6 @@ module shift_register(
    input data_in, 
    output data_out
 );
-
-   genvar i;
 
    reg internal_registers [DEPTH-1:0];
 
@@ -27,13 +25,14 @@ module shift_register(
 	      internal_registers[0] <= data_in;
    end
 
+   genvar i;
    generate
       for (i = 1; i < DEPTH; i = i + 1) begin: sr_loop
 	      always @ (posedge clk) begin
 	         if (rst == 1)
 	            internal_registers[i] <= 0;
 	         else
-               (shift == 1)
+                internal_registers[i] <= internal_registers[i-1];
 	      end
       end
    endgenerate

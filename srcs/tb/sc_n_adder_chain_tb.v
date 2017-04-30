@@ -14,8 +14,6 @@ module sc_n_adder_chain_tb();
    reg [N-2:0] sel;
    wire sum;
 
-   sc_n_adder_chain #(N) dut( .clk(clk), .rst(rst), .inputs(inputs), .sel(sel), .sum(sum) );
-
    // Clock generation
    parameter CLOCK_PERIOD=10;
    always begin
@@ -23,9 +21,12 @@ module sc_n_adder_chain_tb();
       clk = ~clk;
    end 
 
+   sc_n_adder_chain #(N) dut( .clk(clk), .rst(rst), .inputs(inputs), .sel(sel), .sum(sum) );
+
    initial begin
       // initialize inputs
       rst = 1;
+      clk = 0;
       inputs = 0;
       sel = 0;
 
