@@ -1,1 +1,32 @@
-This repository contains stochastic computing primitives implemented in verilog.
+The script, sc_gen.py, generates verilog modules and testbenches. 
+The top-level module it generates is a matrix multiply module in the stochastic domain.
+Additional lower level modules are generated. Eventually a wrapper module will be
+available for generation as well.
+
+The following arguments can be processed by the script:
+-dst <directory>
+   specifies the directory in which to place the generated files.
+
+-name <suffix>
+   specifies a suffix to append to all generated modules.
+
+-bs <number>
+   specifies the batch size of the input matrix.
+   In matrix multiply of MxN * NxO. Batch size is M.
+
+-is <number>
+   specifies the input feature size of the matrices.
+   In matrix multiply of MxN * NxO. Input feature size is N.
+
+-os <number>
+   specifies the output feature size.
+   In matrix multiply of MxN * NxO. Output size is O.
+
+-p [uni|bi]
+   specifies the representation type of the stochastic numbers.
+   Uni-polar is [0,1].
+   Bi-polar is [-1.1].
+
+-alaghi
+   specifies that alaghi adders are used instead of conventional stochastic 
+   adders.

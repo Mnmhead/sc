@@ -33,7 +33,7 @@ def generate_modules( args ):
 
    # write the dot_product module
    with open( os.path.join( args.dest_dir, dp_name ), 'w' ) as f:
-      write_dot_prod_module( f, dp_name, N )
+      write_dot_prod_module( f, args, dp_name, N )
 
    # write the nadder module
    with open( os.path.join( args.dest_dir, nadder_name), 'w' ) as f:
@@ -99,7 +99,7 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
 #
 #
 # 
-def write_dot_prod_module( f, module_name, length ):
+def write_dot_prod_module( f, args, module_name, length ):
    # compute number of select streams
    select_width = int( math.log( length, 2 ) )
    
@@ -131,7 +131,12 @@ def write_dot_prod_module( f, module_name, length ):
    write_line( f, "wire [LENGTH-1:0] mult_out;", 1 )
    write_line( f, "generate", 1 )
    write_line( f, "for( i = 0; i < LENGTH; i = i + 1) begin : mult", 2 )
-   write_line( f, "sc_multiplier(.x(data[i]), .y(weights[i]), .res(mult_out[i]));", 3 )
+
+   if args.rep == 'uni':
+      write_line( f, "sc_multiplier(.x(data[i]), .y(weights[i]), .res(mult_out[i]));", 3 )
+   if args.rep == 'bi':
+      write_line( f, "sc_multiplier_bi(.x(data[i]), .y(weights[i]), .z(mult_out[i]));", 3 )
+
    write_line( f, "end", 2 )
    write_line( f, "endgenerate", 1 )
    write_line( f, "" )
@@ -310,9 +315,10 @@ def cli():
       default=False, help='Switches to alaghi adders instead of conventional sc adders'
    )
    args = parser.parse_args()
+   args.rep = str.lower( args.rep )
 
    # Argument validation
-   if ( str.lower(args.rep) not in REP_OPTIONS ):
+   if ( args.rep not in REP_OPTIONS ):
       print( "Usage: -p [uni|bi]" )
       exit()
    if ( not os.path.isdir( args.dest_dir ) ):
