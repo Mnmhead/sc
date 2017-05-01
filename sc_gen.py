@@ -5,8 +5,12 @@ from time import gmtime, strftime
 import math
 import os
 
-REP_OPTIONS = ["uni", "bi"]
+REP_OPTIONS = ["uni", "bi"]  # types of supported stochastic representations 
+MATRIX = "sc_matrix_mult"
+DOT_PROD = "sc_dot_product"
+NADDER = "sc_nadder"
 
+#------------Module Generation----------------#
 # Generates a matrix multiply module in the stochastic domain. 
 # Opens and writes to a file.
 # The contents of the file are specified by the users input.
@@ -16,9 +20,9 @@ def generate_modules( args ):
    O = args.output_size
 
    # if a module name is supplied, concatenate module names
-   mat_mult_name = "sc_matrix_mult"
-   dp_name = "sc_dot_product"
-   nadder_name = "sc_nadder"
+   mat_mult_name = MATRIX
+   dp_name = DOT_PROD
+   nadder_name = NADDER
    if args.module_name is not "":
       mat_mult_name += "_" + args.module_name
       dp_name += "_" + args.module_name
@@ -30,15 +34,18 @@ def generate_modules( args ):
 
    # write the dot_product module
    with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
-      write_dot_prod_module( f, args, dp_name, N )
+      write_dot_prod_module( f, args.rep, dp_name, N )
 
    # write the nadder module
    with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
       write_nadder_module( f, nadder_name, N )
 
-#   
-#
-#
+# Writes a stochatsic matrix multiply module to an output file, f.
+# Parameters:
+#  module_name, a string for the module
+#  batch, an int specifying the batch size (in a matrix mult MxN * NxO, M is batch size)
+#  inpt, an int specifying the input feature size (N)
+#  outpt, an int specifying the output feature size (O)
 def write_matrix_module( f, module_name, batch, inpt, outpt ):
    # compute the log base 2 of the input, 
    # this is how many select streams are required
@@ -93,10 +100,13 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
 
    return
 
-#
-#
-# 
-def write_dot_prod_module( f, args, module_name, length ):
+# Writes a stochastic dot_product module to the file, f.
+# Parameters:
+#  f, the file to write to
+#  rep, a string for the stochastic represntation type (uni or bi)
+#  module_name, a string for the module name
+#  length, an int which specifies the length of the input vectors to the module
+def write_dot_prod_module( f, rep, module_name, length ):
    # compute number of select streams
    select_width = int( math.log( length, 2 ) )
    
@@ -129,9 +139,9 @@ def write_dot_prod_module( f, args, module_name, length ):
    write_line( f, "generate", 1 )
    write_line( f, "for( i = 0; i < LENGTH; i = i + 1) begin : mult", 2 )
 
-   if args.rep == 'uni':
+   if rep == 'uni':
       write_line( f, "sc_multiplier(.x(data[i]), .y(weights[i]), .res(mult_out[i]));", 3 )
-   if args.rep == 'bi':
+   if rep == 'bi':
       write_line( f, "sc_multiplier_bi(.x(data[i]), .y(weights[i]), .z(mult_out[i]));", 3 )
 
    write_line( f, "end", 2 )
@@ -150,9 +160,11 @@ def write_dot_prod_module( f, args, module_name, length ):
 
    return
 
-#
-#
-#
+# Writes a sc_nadder module. This module adds n inputs in the stochastic domain.
+# Parameters:
+#  f, the file to write to
+#  module_name, a string for the module name
+#  n, an integer which specifies the number of inputs to the adder module
 def write_nadder_module( f, module_name, n ):
    # compute number of select streams needed 
    select_width = int(math.log( n, 2 ))
@@ -179,7 +191,6 @@ def write_nadder_module( f, module_name, n ):
 
    return
 
-   
 # Writes the header comment for the sc_matrix_mult module.
 # This comment nincludes a timestamp of when the file was genertaed, in GMT.
 def write_header_mat_mult( f ):
@@ -241,8 +252,100 @@ def write_header_nadder( f ):
 # Function which opens and writes testbench files for the verilog modules
 # generated (and specified by the users input arguments).
 def generate_testbenches( args ):
-   pass
+   # if a module name is supplied, concatenate module names
+   mm_tb_name = "sc_matrix_mult_tb"
+   dp_tb_name = "sc_dot_product_tb"
+   nadder_tb_name = "sc_nadder_tb"
+   if args.module_name is not "":
+      mm_tb_name += "_" + args.module_name
+      dp_tb_name += "_" + args.module_name
+      nadder_tb_name += "_" + args.module_name
 
+   # make a folder for the testbenches called 'tb'
+   tb = args.dest_dir + "/tb"
+   if not os.path.exists( tb ):
+      os.makedirs( tb )
+
+   # write the matrix multiply testbench
+   with open( os.path.join( tb, mm_tb_name + ".v" ), 'w' ) as f:
+      #write_mm_tb( f, 
+      pass
+
+   # write the dot product testbench
+   with open( os.path.join( tb, dp_tb_name + ".v" ), 'w' ) as f:
+     #write_dp_tb( f, 
+      pass
+
+   # write the nadder testbench module
+   with open( os.path.join( tb, nadder_tb_name + ".v" ), 'w' ) as f: 
+      write_nadder_tb( f, nadder_tb_name, args.input_size )
+
+# Writes a testbench module for the generated sc_nadder.
+# Parameter:
+#  f, the file to write to
+#  module_name, the name of the testbench module
+#  n, an int, the number of inputs to the nadder
+def write_nadder_tb( f, module_name, n ):
+   # write the header comment
+   # write_nadder_tb_header( f )
+
+   # compute number of select streams needed 
+   select_width = int(math.log( n, 2 ))
+
+   # compute the max possible number of input stream permutations
+   # and select stream permutations
+   input_count = math.pow( 2, n )
+   select_count = math.pow( 2, select_width )
+
+   write_line( f, "`timescale 1ns / 10ps" )  
+   write_line( f, "" )
+   write_line( f, "module " + module_name + "();" )
+   write_line( f, "parameter INPUT_STREAMS = " + str(n) + ";", 1 )
+   write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 ) 
+   write_line( f, "" )
+   write_line( f, "reg [INPUT_STREAMS-1:0] x;", 1 )
+   write_line( f, "reg [SELECT_WIDTH-1:0]  sel;", 1 )
+   write_line( f, "wire                    out;", 1 )
+   write_line( f, "" )
+   write_line( f, "sc_nadder dut(.x(x), .sel(sel), .out(out));", 1 )
+   write_line( f, "" )
+   write_line( f, "integer errors;", 1 )
+   write_line( f, "initial errors = 0;", 1 )
+   write_line( f, "" )
+   write_line( f, "integer i;", 1 )
+   write_line( f, "integer s;", 1 )
+   write_line( f, "initial begin", 1 )
+   write_line( f, "// initialize inputs", 2 )
+   write_line( f, "x = 0;", 2 )
+   write_line( f, "sel = 0;", 2 )
+   write_line( f, "#25;", 2 )
+   write_line( f, "" )
+   write_line( f, "// for all 256 input stream permutations, test each possible select permutation", 2 )
+   write_line( f, "for(i = 0; i < " + str(input_count) + "; i = i + 1) begin", 2 ) 
+   write_line( f, "x = i;", 3 )
+   write_line( f, "for(s = 0; s < " + str(select_count) + "; s = s + 1) begin", 3 )
+   write_line( f, "sel = s;", 4 )
+   write_line( f, "#5;", 4 )
+   write_line( f, "if( x[s] != out ) begin", 4 )
+   write_line( f, "$display( \"Error incorrect output. Input streams: %B, Select streams: %B, out: %d\", x, sel, out );", 5 )
+   write_line( f, "errors = errors + 1;", 5 )
+   write_line( f, "end", 4 )
+   write_line( f, "#5;", 4 )
+   write_line( f, "end", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "" )
+   write_line( f, "// error summary", 2 )
+   write_line( f, "if( errors > 0 ) begin", 2 )
+   write_line( f, "$display(\"Validataion failure: %d error(s).\", errors);", 3 )
+   write_line( f, "end else begin", 2 )
+   write_line( f, "$display(\"Validation successful.\");", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "" )
+   write_line( f, "$stop;", 2 )
+   write_line( f, "end", 1 )
+   write_line( f, "endmodule // sc_nadder_tb" )
+
+   return
 
 #---------Helper functions-----------#
 # Helper function to write to file, f.

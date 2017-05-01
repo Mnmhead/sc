@@ -24,8 +24,8 @@ module sc_nadder_tb();
    integer errors;
    initial errors = 0;
    
-    integer i;
-    integer s;
+   integer i;
+   integer s;
    initial begin
       // initialize inputs
       x = 0;
@@ -38,10 +38,10 @@ module sc_nadder_tb();
          for(s = 0; s < 8; s = s + 1) begin
             sel = s;
             #5;
-            //if( x[s] != out ) begin
+            if( x[s] != out ) begin
                $display( "Error incorrect output. Input streams: %B, Select streams: %B, out: %d\n", x, sel, out );
                errors = errors + 1;
-            //end
+            end
             #5;
          end
       end
