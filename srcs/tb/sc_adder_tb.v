@@ -84,7 +84,7 @@ module sc_adder_tb();
 		    $display("Validataion failure: %d error(s).", errors);
 		end else begin
             $display("Validation successful.");
-        end
+      end
 
 		$stop;	
 	end

@@ -23,23 +23,18 @@ def generate_modules( args ):
       mat_mult_name += "_" + args.module_name
       dp_name += "_" + args.module_name
       nadder_name += "_" + args.module_name
-   mat_mult_name += ".v"
-   dp_name += ".v"
-   nadder_name += ".v"   
 
    # write the matrix multiply module
-   with open( os.path.join( args.dest_dir, mat_mult_name ), 'w' ) as f: 
+   with open( os.path.join( args.dest_dir, mat_mult_name + ".v" ), 'w' ) as f: 
       write_matrix_module( f, mat_mult_name, M, N, O )
 
    # write the dot_product module
-   with open( os.path.join( args.dest_dir, dp_name ), 'w' ) as f:
+   with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
       write_dot_prod_module( f, args, dp_name, N )
 
    # write the nadder module
-   with open( os.path.join( args.dest_dir, nadder_name), 'w' ) as f:
+   with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
       write_nadder_module( f, nadder_name, N )
-
-   print( "Done!" )
 
 #   
 #
@@ -62,13 +57,13 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
    write_line( f, "outputWriteEn", 1 )
    write_line( f, ");" )
    write_line( f, "" )
-   write_line( f, "parameter BATCH_SIZE = 4, // M", 1 )
-   write_line( f, "parameter INPUT_FEATURES = 4, // N", 1 )
-   write_line( f, "parameter OUTPUT_FEATURES = 4 // O", 1 )
-   write_line( f, "parameter SELECT_WIDTH = " + str(select_width), 1 )
+   write_line( f, "parameter BATCH_SIZE = " + str(batch) + "; // M", 1 )
+   write_line( f, "parameter INPUT_FEATURES = " + str(inpt) + "; // N", 1 )
+   write_line( f, "parameter OUTPUT_FEATURES = " + str(outpt) + "; // O", 1 )
+   write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// inputs and outputs", 1 )
-   write_line( f, "input                                      ilk;", 1 )
+   write_line( f, "input                                      clk;", 1 )
    write_line( f, "input                                      rst;", 1 )
    write_line( f, "input [BATCH_SIZE*INPUT_FEATURES-1:0]      inputStreams;", 1 )
    write_line( f, "input [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams;", 1 )
@@ -76,9 +71,11 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
    write_line( f, "output [BATCH_SIZE*OUTPUT_FEATURES-1:0]    outputStreams;", 1 )
    write_line( f, "output                                     outputWriteEn;", 1 )
    write_line( f, "" )
+   write_line( f, "genvar i;", 1 )
+   write_line( f, "genvar j;", 1 )
    write_line( f, "generate", 1 )
-   write_line( f, "for( i = 0; i < BATCH_SIZE; i = i + 1) begin", 2 )
-   write_line( f, "for( j = 0; j < OUTPUT_FEATURES; j = j + 1) begin : dot_prod_loop", 3 )
+   write_line( f, "for( i = 0; i < BATCH_SIZE; i = i + 1) begin : dot_prod_loop", 2 )
+   write_line( f, "for( j = 0; j < OUTPUT_FEATURES; j = j + 1) begin", 3 )
    write_line( f, "sc_dot_product (.clk(clk),", 4 )
    write_line( f, "                .rst(rst),", 4 )
    write_line( f, "                .data(inputStreams[i*INPUT_FEATURES +: INPUT_FEATURES]),", 4 )
@@ -115,8 +112,8 @@ def write_dot_prod_module( f, args, module_name, length ):
    write_line( f, "result", 1 )
    write_line( f, ");" )
    write_line( f, "" )
-   write_line( f, "parameter LENGTH = " + str(length), 1 )
-   write_line( f, "parameter SELECT_WIDTH = " + str(select_width), 1 )
+   write_line( f, "parameter LENGTH = " + str(length) + ";", 1 )
+   write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// inputs and outputs", 1 )
    write_line( f, "input                    clk;", 1 )
@@ -169,8 +166,8 @@ def write_nadder_module( f, module_name, n ):
    write_line( f, "out", 1 )
    write_line( f, ");" )
    write_line( f, "" )
-   write_line( f, "parameter INPUT_STREAMS = " + str(n), 1 )
-   write_line( f, "parameter SELECT_WIDTH = " + str(select_width), 1 )
+   write_line( f, "parameter INPUT_STREAMS = " + str(n) + ";", 1 )
+   write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
    write_line( f, "" )
    write_line( f, "input [INPUT_STREAMS-1:0] x;", 1 )
    write_line( f, "input [SELECT_WIDTH-1:0]  sel;", 1 )
