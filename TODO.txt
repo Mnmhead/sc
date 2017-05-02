@@ -1,9 +1,6 @@
-   -  make dot_product test bench.
-     generate some random input vectors (write them to files). compute the output in python code.
-     write the expected output vectors to a file. read both input and output vectors
-     from files.
-     files should be in another subdirectory within the 'tb' directory
-     ADD a valid output to sc_dot_prod
+   -  make sure dot_product test bench actually works. (The reading 1 bit thing might be an issue)
+      eventually add in the bipolar flag (generate correct vectors for bipolar)
+      ADD a valid output to sc_dot_prod
 
    - generate a matrix multiply testbench in the same way
 
@@ -13,6 +10,8 @@
    - think about how the matrix multiply wrapper is going to work.
       I can understand the binary->stochastic portion (weight and input stream generation)
       How to I make the back-end, meaning, how do I make stochastic->binary conversion.
+
+   - make a matrix multiply wrapper (after I fukin figure out how)
 
    - make a bipolar multiply testbench.
    

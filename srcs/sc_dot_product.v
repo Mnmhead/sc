@@ -68,7 +68,8 @@ module sc_dot_product #(
    wire adder_res;
    sc_nadder #(LENGTH) (.x(product_streams), .sel(sel), .out(adder_res));
    
-   // direct adder output to final output
+   // direct adder output to register and then to final output
+   reg i_result;
    always @(posedge clk) begin
       if( rst == 1'b1 ) begin
          i_result <= 0;
