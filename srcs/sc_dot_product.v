@@ -19,7 +19,8 @@ module sc_dot_product #(
    data,
    weights,
    sel,
-   result
+   result,
+   valid
 );
 
    // Helper function to set the number of select streams needed
@@ -42,6 +43,7 @@ module sc_dot_product #(
    input [LENGTH-1:0]       weights;
    input [SELECT_WIDTH-1:0] sel;
    output                   result;
+   output                   valid;
 
    // multipication modules, for element wise multiplication of data and weights
    genvar i;
@@ -55,10 +57,32 @@ module sc_dot_product #(
    // direct multiplication output to an intermediate register
    reg [LENGTH-1:0] product_streams;
    always @(posedge clk) begin
-      product_streams <= mult_out;
+      if( rst == 1'b1 ) begin
+         product_streams <= 0;
+      end else begin
+         product_streams <= mult_out;
+      end
    end
 
    // add all element-wise products
-   sc_nadder #(LENGTH) (.x(product_streams), .sel(sel), .out(result));
+   wire adder_res;
+   sc_nadder #(LENGTH) (.x(product_streams), .sel(sel), .out(adder_res));
+   
+   // direct adder output to final output
+   always @(posedge clk) begin
+      if( rst == 1'b1 ) begin
+         i_result <= 0;
+      end else begin
+         i_result <= adder_res;
+      end
+   end
+
+   assign result = i_result;
+
+   // ochestrate the valid signal to go high when a valid output stream is
+   // being produced.
+   // NOOOOOOOOOOO....this means I will have to generate a stupid shift
+   // register as well.....uggggg
+   shift_register #(2) (.clk(clk), .rst(rst), .data_in(1), .data_out(valid));
 
 endmodule // sc_dot_product
