@@ -181,7 +181,7 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "" )
    write_line( f, "// add all element-wise products", 1 )
    write_line( f, "wire adder_res;", 1 )
-   write_line( f, "sc_nadder #(LENGTH) (.x(product_streams), .sel(sel), .out(result));", 1 )
+   write_line( f, "sc_nadder(.x(product_streams), .sel(sel), .out(result));", 1 )
    write_line( f, "" )
    write_line( f, "// direct adder output to register and then to final output", 1 )
    write_line( f, "reg i_result;", 1 )
@@ -196,7 +196,9 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "assign result = i_result;", 1 )
    write_line( f, "" )
    write_line( f, "// Use shift register to indicate when module output is valid", 1 )
-   write_line( f, "shift_register(.clk(clk), .rst(rst), .data_in(1), .data_out(valid));", 1 )
+   # Ill have to change the shift register type (after I implement the alaghi adder stuff)
+   # TODO
+   write_line( f, "shift_2_register(.clk(clk), .rst(rst), .data_in(1), .data_out(valid));", 1 )
    write_line( f, "" )
    write_line( f, "endmodule // sc_dot_product" )
 
@@ -278,17 +280,6 @@ def write_shift_register_module( f, module_name, shift ):
 
    return
 
-# Writes the header comment for the shift_register module to file, f.
-def write_header_shiftreg( f ):
-   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
-   write_line( f, "// Create Date: " + get_time() )
-   write_line( f, "//" )
-   write_line( f, "// Description: The circuit represents a 1-bit width shift register." )
-   write_line( f, "// Shift depth is in the title of the module." )
-   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
-
-   return
-
 # Writes the header comment for the sc_matrix_mult module.
 # This comment nincludes a timestamp of when the file was genertaed, in GMT.
 def write_header_mat_mult( f ):
@@ -339,5 +330,16 @@ def write_header_nadder( f ):
    write_line( f, "// un-correlated stochastic streams (each with value=0.5)." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
+
+   return
+
+# Writes the header comment for the shift_register module to file, f.
+def write_header_shiftreg( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The circuit represents a 1-bit width shift register." )
+   write_line( f, "// Shift depth is in the title of the module." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
 
    return
