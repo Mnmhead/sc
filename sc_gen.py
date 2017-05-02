@@ -38,6 +38,28 @@ def generate( args ):
    with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
       write_nadder_module( f, nadder_name, N )
 
+   # generate any miscellanious modules needed
+   generate_basic_modules( args )
+
+   return
+
+# Generates some basic building blocks required to build
+# the stochastic matrix multiply.
+# The contents of the generated file are specified by the user's input.
+def generate_basic_modules( args ):
+   shift = 2
+   if( args.alaghi ):
+      shift = 0 # Ill have to figure out how much delay there will be for alaghi adder trees
+
+   shift_name = "shift_" + str(shift) + "_register"
+   if args.module_name is not "":
+      shift_name += "_" + args.module_name
+
+   with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
+      write_shift_register_module( f, shift_name, shift )
+
+   return
+
 # Writes a stochatsic matrix multiply module to an output file, f.
 # Parameters:
 #  module_name, a string for the module
@@ -187,7 +209,6 @@ def write_dot_prod_module( f, rep, module_name, length ):
 #  n, an integer which specifies the number of inputs to the adder module
 def write_nadder_module( f, module_name, n ):
    # compute number of select streams needed 
-   # select_width = int(math.log( n, 2 ))
    select_width = clogb2( n )
 
    # write the header comment
@@ -209,6 +230,62 @@ def write_nadder_module( f, module_name, n ):
    write_line( f, "assign out = x[sel];", 1 )
    write_line( f, "" )
    write_line( f, "endmodule // sc_nadder" )
+
+   return
+
+# Writes a shift_n_register module. This module shifts a 1 bit value for n clock cycles.
+# Parameters:
+#  f, the file to write to
+#  module_name, string for module name
+#  shift, an int specifying how many clock cycles to shift for
+def write_shift_register_module( f, module_name, shift ):
+   # write the header comment
+   write_header_shiftreg( f )
+ 
+   write_line( f, " module " + module_name + "(" )
+   write_line( f, "input clk,", 1 )
+   write_line( f, "input rst,", 1 )
+   write_line( f, "input data_in,", 1 )
+   write_line( f, "output data_out", 1 )
+   write_line( f, ");" )
+   write_line( f, "" )
+   write_line( f, "parameter DEPTH = " + str(shift) + ";", 1 )
+   write_line( f, "" )
+   write_line( f, "reg internal_registers [DEPTH-1:0];", 1 )
+   write_line( f, "" )
+   write_line( f, "// assign first register", 1 )
+   write_line( f, "always @ (posedge clk) begin", 1 )
+   write_line( f, "if (rst == 1)", 2 )
+   write_line( f, "internal_registers[0] <= 0;", 3 )
+   write_line( f, "else", 2 )
+   write_line( f, "internal_registers[0] <= data_in;", 3 )
+   write_line( f, "end", 1 )
+   write_line( f, "" )
+   write_line( f, "genvar i;", 1 )
+   write_line( f, "generate", 1 )
+   write_line( f, "for (i = 1; i < DEPTH; i = i + 1) begin: sr_loop", 2 )
+   write_line( f, "always @ (posedge clk) begin", 3 )
+   write_line( f, "if (rst == 1)", 4 )
+   write_line( f, "internal_registers[i] <= 0;", 5 )
+   write_line( f, "else", 4 )
+   write_line( f, "internal_registers[i] <= internal_registers[i-1];", 5 )
+   write_line( f, "end", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "endgenerate", 1 )
+   write_line( f, "" )
+   write_line( f, "assign data_out = internal_registers[DEPTH-1];", 1 )
+   write_line( f, "endmodule // shift_register" )
+
+   return
+
+# Writes the header comment for the shift_register module to file, f.
+def write_header_shiftreg( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The circuit represents a 1-bit width shift register." )
+   write_line( f, "// Shift depth is in the title of the module." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
 
    return
 
