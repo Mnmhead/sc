@@ -1,0 +1,22 @@
+   -  make dot_product test bench.
+     generate some random input vectors (write them to files). compute the output in python code.
+     write the expected output vectors to a file. read both input and output vectors
+     from files.
+     files should be in another subdirectory within the 'tb' directory
+
+   - generate a matrix multiply testbench in the same way
+
+   - figure out how to generate select streams (LFSR stuff needs figuring out)
+     counter is the easiest way. (Vander corpit is wild, look up what that is)
+
+   - think about how the matrix multiply wrapper is going to work.
+      I can understand the binary->stochastic portion (weight and input stream generation)
+      How to I make the back-end, meaning, how do I make stochastic->binary conversion.
+
+   - make a bipolar multiply testbench.
+   
+   - make an alahgi adder testbench. 
+   
+   - make an alaghi adder tree that adds n inputs, where n is any natural number.
+
+   - add support for alahgi adder
