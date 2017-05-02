@@ -49,7 +49,7 @@ def generate_modules( args ):
 def write_matrix_module( f, module_name, batch, inpt, outpt ):
    # compute the log base 2 of the input, 
    # this is how many select streams are required
-   select_width = int(math.log( inpt, 2 ))
+   select_width = clogb2( inpt )
 
    # write the header comment
    write_header_mat_mult( f )
@@ -108,7 +108,7 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
 #  length, an int which specifies the length of the input vectors to the module
 def write_dot_prod_module( f, rep, module_name, length ):
    # compute number of select streams
-   select_width = int( math.log( length, 2 ) )
+   select_width = clogb2( length )
    
    # write the header comment
    write_header_dot_prod( f )
@@ -167,7 +167,8 @@ def write_dot_prod_module( f, rep, module_name, length ):
 #  n, an integer which specifies the number of inputs to the adder module
 def write_nadder_module( f, module_name, n ):
    # compute number of select streams needed 
-   select_width = int(math.log( n, 2 ))
+   # select_width = int(math.log( n, 2 ))
+   select_width = clogb2( n )
 
    # write the header comment
    write_header_nadder( f )
@@ -205,8 +206,6 @@ def write_header_mat_mult( f ):
    write_line( f, "//" )
    write_line( f, "// For more information on stochastic computing:" )
    write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
-   write_line( f, "//" )
-   write_line( f, "// Requirement: parameter INPUT_FEATURES, N, must be a power of 2." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
    
@@ -239,9 +238,8 @@ def write_header_nadder( f ):
    write_line( f, "// For more information on stochastic computing: https://en.wikipedia.org/wiki/Stochastic_computing" )
    write_line( f, "//" )
    write_line( f, "// Requirements:" )
-   write_line( f, "// The number of input streams must be a power of 2. The input 'sel' must" )
-   write_line( f, "// be the concatenation of log2(INPUT_STREAMS) number of un-correlated stochastic streams" )
-   write_line( f, "// (each with value=0.5)." )
+   write_line( f, "// The input 'sel' must be the concatenation of log2(INPUT_STREAMS) number of" )
+   write_line( f, "// un-correlated stochastic streams (each with value=0.5)." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
 
@@ -290,12 +288,12 @@ def write_nadder_tb( f, module_name, n ):
    # write_nadder_tb_header( f )
 
    # compute number of select streams needed 
-   select_width = int(math.log( n, 2 ))
+   select_width = clogb2( n )
 
    # compute the max possible number of input stream permutations
    # and select stream permutations
-   input_count = math.pow( 2, n )
-   select_count = math.pow( 2, select_width )
+   input_count = int(math.pow( 2, n ))
+   select_count = int(math.pow( 2, select_width ))
 
    write_line( f, "`timescale 1ns / 10ps" )  
    write_line( f, "" )
@@ -320,7 +318,7 @@ def write_nadder_tb( f, module_name, n ):
    write_line( f, "sel = 0;", 2 )
    write_line( f, "#25;", 2 )
    write_line( f, "" )
-   write_line( f, "// for all 256 input stream permutations, test each possible select permutation", 2 )
+   write_line( f, "// for all input stream permutations, test each possible select permutation", 2 )
    write_line( f, "for(i = 0; i < " + str(input_count) + "; i = i + 1) begin", 2 ) 
    write_line( f, "x = i;", 3 )
    write_line( f, "for(s = 0; s < " + str(select_count) + "; s = s + 1) begin", 3 )
@@ -357,14 +355,14 @@ def write_line( f, string, numTabs=0 ):
       tab += "   "
    f.write( tab + string + "\n" )
 
-# Helper function.
-# Returns true if num is a power of 2, false otherwise.
-def power_of_2( num ):
-   return num != 0 and ((num & (num - 1)) == 0)
-
 # Helper function to get the time and date in GMT
 def get_time():
    return strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " GMT"
+
+# Helper function. Computes the ceiling log base 2 of input.
+def clogb2( x ):
+   return int(math.ceil( math.log( x, 2 ) ))
+
 
 #----------Argument Handler---------#
 # Command line interface specification
@@ -423,9 +421,6 @@ def cli():
       exit()
    if ( not os.path.isdir( args.dest_dir ) ):
       print( "ERROR: dst={} is not a valid path".format( args.dest_dir ) )
-      exit()
-   if ( not power_of_2( args.input_size ) ):
-      print( "Usage: -is input must be a power of 2" )
       exit()
   
    return args 
