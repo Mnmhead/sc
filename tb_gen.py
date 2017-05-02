@@ -44,7 +44,7 @@ def generate( args ):
 #  n, an int, the number of inputs to the nadder
 def write_nadder_tb( f, module_name, n ):
    # write the header comment
-   # write_nadder_tb_header( f )
+   write_nadder_tb_header( f )
 
    # compute number of select streams needed 
    select_width = clogb2( n )
@@ -103,4 +103,14 @@ def write_nadder_tb( f, module_name, n ):
    write_line( f, "endmodule // sc_nadder_tb" )
 
    return
+
+# Writes the header comment for nadder testbench to file, f.
+def write_nadder_tb_header( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: This module serves as a testbench for the sc_nadder module." )
+   write_line( f, "// For more information on stochastic computing: https://en.wikipedia.org/wiki/Stochastic_computing" )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+
 

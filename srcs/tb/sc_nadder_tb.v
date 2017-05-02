@@ -1,13 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 // Create Date: 2017-05-01 19:41:46 GMT
 //
-// Description: The circuit represents a multi-input adder in the stochastic domain.
+// Description: This module serves as a testbench for the sc_nadder module.
 // For more information on stochastic computing: https://en.wikipedia.org/wiki/Stochastic_computing
-//
-// Requirements:
-// The number of input streams must be a power of 2. The input 'sel' must
-// be the concatenation of log2(INPUT_STREAMS) number of un-correlated stochastic streams
-// (each with value=0.5).
 //////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns / 10ps
 
