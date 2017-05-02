@@ -37,6 +37,15 @@ def generate( args ):
    with open( os.path.join( tb, nadder_tb_name + ".v" ), 'w' ) as f:
       write_nadder_tb( f, nadder_tb_name, args.input_size )
 
+# Writes the testbench module for the generated sc_dot_product.
+# Parameters:
+#  f, the file to write to
+#  rep, a string specifying the stochastic representation (either uni or bi)
+#  module_name,  a string, the name of the module
+#  length, an integer, the length of the input vectors
+def write_dp_tb( f, rep, module_name, length ):
+    pass
+
 # Writes a testbench module for the generated sc_nadder.
 # Parameter:
 #  f, the file to write to
