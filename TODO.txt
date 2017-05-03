@@ -1,6 +1,5 @@
    -  make sure dot_product test bench actually works. (The reading 1 bit thing might be an issue)
       eventually add in the bipolar flag (generate correct vectors for bipolar)
-      ADD a valid output to sc_dot_prod
 
    - generate a matrix multiply testbench in the same way
 
