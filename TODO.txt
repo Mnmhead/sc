@@ -1,5 +1,9 @@
    -  make sure dot_product test bench actually works. (The reading 1 bit thing might be an issue)
-      eventually add in the bipolar flag (generate correct vectors for bipolar)
+      eventually add in the bipolar flag (generate correct vectors for bipolar).
+      O shit....should all the data be on 1 line?
+
+   - Is it best to have arguments be the means of specifying the modules.
+     Maybe a config file is better?
 
    - generate a matrix multiply testbench in the same way
 
@@ -9,6 +13,10 @@
    - think about how the matrix multiply wrapper is going to work.
       I can understand the binary->stochastic portion (weight and input stream generation)
       How to I make the back-end, meaning, how do I make stochastic->binary conversion.
+
+      OK. We will have 3? possible types of noise source choices. We have weights, input_features,
+      and the select streams. I guess we will have choices for each available through arguments
+      to the script.
 
    - make a matrix multiply wrapper (after I fukin figure out how)
 

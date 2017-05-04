@@ -7,6 +7,7 @@
 import argparse
 import os
 import sc_gen
+import srcs_gen
 import tb_gen
 
 REP_OPTIONS = ["uni", "bi"]  # types of supported stochastic representations
@@ -75,6 +76,8 @@ def cli():
 # Script entry point function
 if __name__ == '__main__':
    args = cli()
+   print( "Generating Basic Modules..." )
+   srcs_gen.generate( args )
    print( "Generating Modules..." )
    sc_gen.generate( args )
    print( "done!" )
