@@ -21,10 +21,6 @@ def generate( args ):
    with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
       write_shift_register_module( f, shift_name, shift )
 
-   # make a shift register that shifts 1 clock cycle
-   with open( os.path.join( args.dest_dir, "shift_1_register.v" ), 'w' ) as f:
-      write_shift_register_module( f, "shift_1_register", 1 )
-
    return
 
 # Writes a counter module.
