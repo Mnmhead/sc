@@ -142,9 +142,9 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "for( i = 0; i < LENGTH; i = i + 1) begin : mult", 2 )
 
    if rep == 'uni':
-      write_line( f, "sc_multiplier(.x(data[i]), .y(weights[i]), .res(mult_out[i]));", 3 )
+      write_line( f, "sc_multiplier MULT(.x(data[i]), .y(weights[i]), .res(mult_out[i]));", 3 )
    if rep == 'bi':
-      write_line( f, "sc_multiplier_bi(.x(data[i]), .y(weights[i]), .z(mult_out[i]));", 3 )
+      write_line( f, "sc_multiplier_bi MULT(.x(data[i]), .y(weights[i]), .z(mult_out[i]));", 3 )
 
    write_line( f, "end", 2 )
    write_line( f, "endgenerate", 1 )
@@ -159,9 +159,19 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
+   write_line( f, "// shift the slect streams by 1, this is to wait for the multiplication to complete", 1 )
+   write_line( f, "reg [SELECT_WIDTH-1:0] select;", 1 )
+   write_line( f, "always @(posedge clk) begin", 1 )
+   write_line( f, "if( rst == 1'b1 ) begin", 2 )
+   write_line( f, "select <= 0;", 3 )
+   write_line( f, "end else begin", 2 )
+   write_line( f, "select <= sel;", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "end", 1 )
+   write_line( f, "" )
    write_line( f, "// add all element-wise products", 1 )
    write_line( f, "wire adder_res;", 1 )
-   write_line( f, "sc_nadder(.x(product_streams), .sel(sel), .out(result));", 1 )
+   write_line( f, "sc_nadder NADDER(.x(product_streams), .sel(select), .out(adder_res));", 1 )
    write_line( f, "" )
    write_line( f, "// direct adder output to register and then to final output", 1 )
    write_line( f, "reg i_result;", 1 )
@@ -178,7 +188,7 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "// Use shift register to indicate when module output is valid", 1 )
    # Ill have to change the shift register type (after I implement the alaghi adder stuff)
    # TODO
-   write_line( f, "shift_2_register(.clk(clk), .rst(rst), .data_in(1), .data_out(valid));", 1 )
+   write_line( f, "shift_2_register SHIFT2(.clk(clk), .rst(rst), .data_in(1), .data_out(valid));", 1 )
    write_line( f, "" )
    write_line( f, "endmodule // sc_dot_product" )
 

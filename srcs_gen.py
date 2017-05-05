@@ -9,6 +9,7 @@ import os
 # Generates all modules. Takes in user arguments
 # which specifiy some module features.
 def generate( args ):
+   # make shift register for dot_products adder step
    shift = 2
    if( args.alaghi ):
       shift = 0 # Ill have to figure out how much delay there will be for alaghi adder trees
@@ -19,6 +20,10 @@ def generate( args ):
 
    with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
       write_shift_register_module( f, shift_name, shift )
+
+   # make a shift register that shifts 1 clock cycle
+   with open( os.path.join( args.dest_dir, "shift_1_register.v" ), 'w' ) as f:
+      write_shift_register_module( f, "shift_1_register", 1 )
 
    return
 

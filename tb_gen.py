@@ -191,7 +191,8 @@ def gen_dp_data( data_dir, rep, length ):
 #  data_vec and weight_vec are arrays of 1's and 0's
 #  sel, is an integer in the range of 0 to length-1, where length is size of vectors
 def sc_dot_product( data_vec, weight_vec, sel ):
-   return data_vec[sel] & weight_vec[sel]
+   reverseIndex = len(data_vec) - 1 - sel
+   return data_vec[reverseIndex] & weight_vec[reverseIndex]
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.

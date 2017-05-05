@@ -32,7 +32,7 @@ module sc_dot_product_tb();
    reg [LENGTH-1:0] test_data [TEST_SIZE-1:0];  // i think this only needs to be clogb2 of TEST_SIZE
    reg [LENGTH-1:0] test_weights [TEST_SIZE-1:0];
    reg [SELECT_WIDTH-1:0] test_sel [TEST_SIZE-1:0]; 
-   reg expexted_result [TEST_SIZE-1:0];
+   reg expected_result [TEST_SIZE-1:0];
    initial begin
       $readmemb(DATA_VECTOR, test_data, 0, TEST_SIZE-1);
       $readmemb(WEIGHT_VECTOR, test_weights, 0, TEST_SIZE-1);
@@ -64,8 +64,8 @@ module sc_dot_product_tb();
          result_index <= 0;
       end else if( valid == 1'b1 ) begin
          if( result != expected_result[result_index] ) begin
-            $display("Error. Expected result %d foes not match actual %d.", 
-                     expected_result[result_index], result );
+            $display("Error. Expected result %d foes not match actual %d. On result index: %d", 
+                     expected_result[result_index], result, result_index);
             errors = errors + 1;
          end
 
@@ -75,10 +75,10 @@ module sc_dot_product_tb();
 
    // Clock Generation
    parameter CLOCK_PERIOD=10;
-   initial Clock=1;
+   initial clk=1;
    always begin
       #(CLOCK_PERIOD/2);
-      Clock = ~Clock;
+      clk = ~clk;
    end
 
    // instantiate module
@@ -95,9 +95,6 @@ module sc_dot_product_tb();
    initial begin
       // initialize inputs
       rst = 1;
-      data = 0;
-      weights = 0;
-      sel = 0; 
       #(8*CLOCK_PERIOD);
 
       // start sim
