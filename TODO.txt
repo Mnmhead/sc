@@ -1,7 +1,6 @@
-   - Is it best to have arguments be the means of specifying the modules.
-     Maybe a config file is better?
+   - generate a matrix multiply testbench 
 
-   - generate a matrix multiply testbench in the same way
+   - go back and change the TEST_SIZE stuff in dot_product testbench
 
    - figure out how to generate select streams (LFSR stuff needs figuring out)
      counter is the easiest way. (Vander corpit is wild, look up what that is)
@@ -17,9 +16,13 @@
    - make a matrix multiply wrapper (after I fukin figure out how)
 
    - make a bipolar multiply testbench.
+   -- add support for bi-polar in dot_product testbench
    
    - make an alahgi adder testbench. 
    
    - make an alaghi adder tree that adds n inputs, where n is any natural number.
 
    - add support for alahgi adder
+
+   - Is it best to have arguments be the means of specifying the modules.
+     Maybe a config file is better?
