@@ -21,22 +21,80 @@ def generate( args ):
    with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
       write_shift_register_module( f, shift_name, shift )
 
+   """
+   width = args.precision
+   reverse = False
+   with open( os.path.join( args.dest_dir, counter_name + ".v"), 'w' ) as f:
+      write_counter_module( f, counter_name, width )
+   """
+
+   """
+   
+   """
+
    return
 
 # Writes a counter module.
 # Parameters:
 #  f, file to write to
 #  module_name, a string for module_name
-#  max_num, the number the counter reaches before it wraps back to 0 (counter;s output is [0,max_num])
+#  width, an int, the bit_width of the counter
+#  max_num, the number the counter reaches before it wraps back to 0 (counter's output is [0,max_num])
+#      max_num defaults to 2^(width) - 1 .
 #  reverse, an optional boolean which causes the output of the counter to be reversed
-def write_counter_module( f, module_name, max_num, reverse ):
+def write_counter_module( f, module_name, width, max_num=0, reverse=False ):
    # write the header comment
-   #write_header_counter( f )
+   write_header_counter( f )
 
-   #write_line
-   pass
+   # calculate bit_width of the counter
+   bit_width = clogb2( max_num )
+   
+   write_line( f, "module " + module_name + "(" )
+   write_linei f, "clk,", 1 )
+   write_line( f, "rst,", 1 )
+   write_line( f, "enable,", 1 )
+   write_line( f, "restart,", 1 )
+   write_line( f, "out", 1 )
+   write_line( f, ");" )
+   write_line( f, "" )
+   write_line( f, "parameter N = " + str(bit_width) + ";", 1 )
+   write_line( f, "parameter BOUND = " + str(max_num) + "; // the upper bound of the range of this counter", 1 )
+   write_line( f, "" )
+   write_line( f, "input clk;", 1 )
+   write_line( f, "input rst;", 1 )
+   write_line( f, "input enable;", 1 )
+   write_line( f, "input restart;", 1 )
+   write_line( f, "output [N-1:0] out", 1 )
+   write_line( f, "" )
+   write_line( f, "reg [N-1:0] counter;", 1 )
+   write_line( f, "always @(posedge clk or posedge rst) begin", 1 )
+   write_line( f, "if (rst) counter <= 0;", 2 )
+   write_line( f, "else if (restart) counter <= 0;", 2 )
+   write_line( f, "else if (enable) begin", 2 )
+   write_line( f, "if (counter == BOUND) counter <= 0;", 3 )
+   write_line( f, "else counter <= counter + 1;", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "end", 1 )
 
-def write_lfsr_module( f, module_name, max_num ):
+   if reverse:
+       write_line( f, "" )
+       write_line( f, "genvar i;", 1 )
+       write_line( f, "generate", 1 )
+       write_line( f, "for(i=0; i<10;i=i+1) assign out[i] = counter[N-1-i];", 2 )
+       write_line( f, "endgenerate", 1 )
+
+   write_line( f, "" )
+   write_line( f, "endmodule // " + module_name )
+ 
+   return
+
+# Writes an LFSR module.
+# Parameters:
+#  f, the file to write to
+#  module_name, a string 
+#  max_num, an int, the maximum number in decimal this LFSR will generate
+#  zero_detect, a boolean, artificially adds a 0 value to the LFSR
+def write_lfsr_module( f, module_name, max_num, zero_detect ):
    pass
 
 # Writes a shift_n_register module. This module shifts a 1 bit value for n clock cycles.
@@ -92,6 +150,19 @@ def write_header_shiftreg( f ):
    write_line( f, "// Description: The circuit represents a 1-bit width shift register." )
    write_line( f, "// Shift depth is in the title of the module." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
+
+   return
+
+# Writes the header comment for the counter module to file, f.
+def write_header_counter( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The circuit represents a counter which counts up to BOUND" )
+   write_line( f, "// and wraps back to 0." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
 
    return
 
