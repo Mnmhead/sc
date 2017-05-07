@@ -1,13 +1,20 @@
 module lsfr_n_bit #(
    parameter N = 32
 ) (
-   input clk,
-   input rst,
-   input [N-1:0] seed,
-   input enable,
-   input restart,
-   output [N-1:0] data
+   clk,
+   rst,
+   seed,
+   enable,
+   restart,
+   data
 );
+
+   input clk;
+   input rst;
+   input [N-1:0] seed;
+   input enable;
+   input restart;
+   output [N-1:0] data;
 
    reg [N-1:0] shift_reg;
    wire shift_in;
