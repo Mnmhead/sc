@@ -1,7 +1,3 @@
-   -  make sure dot_product test bench actually works. (The reading 1 bit thing might be an issue)
-      eventually add in the bipolar flag (generate correct vectors for bipolar).
-      O shit....should all the data be on 1 line?
-
    - Is it best to have arguments be the means of specifying the modules.
      Maybe a config file is better?
 

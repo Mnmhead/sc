@@ -27,7 +27,8 @@ def generate( args ):
 # Parameters:
 #  f, file to write to
 #  module_name, a string for module_name
-#  max_num, 
+#  max_num, the number the counter reaches before it wraps back to 0 (counter;s output is [0,max_num])
+#  reverse, an optional boolean which causes the output of the counter to be reversed
 def write_counter_module( f, module_name, max_num, reverse ):
    # write the header comment
    #write_header_counter( f )
