@@ -29,7 +29,7 @@ module sc_dot_product_tb();
    wire                    valid;
 
    // read input data and expected output data
-   reg [LENGTH-1:0] test_data [TEST_SIZE-1:0];  // i think this only needs to be clogb2 of TEST_SIZE
+   reg [LENGTH-1:0] test_data [TEST_SIZE-1:0];
    reg [LENGTH-1:0] test_weights [TEST_SIZE-1:0];
    reg [SELECT_WIDTH-1:0] test_sel [TEST_SIZE-1:0]; 
    reg expected_result [TEST_SIZE-1:0];

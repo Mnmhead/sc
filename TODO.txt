@@ -1,7 +1,4 @@
-   - generate a matrix multiply testbench 
-
-   - in the testbenches when i instantiate the DUT modules I might not be using the right module names.
-     fuckkkkk
+   - verify that matrix multiply test bench is working
 
    - go back and change the TEST_SIZE stuff in dot_product testbench
 
@@ -19,7 +16,7 @@
    - make a matrix multiply wrapper (after I fukin figure out how)
 
    - make a bipolar multiply testbench.
-   -- add support for bi-polar in dot_product testbench
+   - add support for bi-polar in dot_product testbench
    
    - make an alahgi adder testbench. 
    

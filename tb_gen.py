@@ -240,7 +240,7 @@ def write_dp_tb( f, module_name, dut_name, rep, length ):
 
    test_width = clogb2( _DP_TEST_SIZE )
 
-   write_line( f, "reg [" + str(test_width) + "-1:0] test_index;", 1 )
+   write_line( f, "reg [" + str(test_width-1) + ":0] test_index;", 1 )
    write_line( f, "initial test_index = 0;", 1 )
    write_line( f, "always @(posedge clk) begin", 1 )
    write_line( f, "if( rst == 1'b1 ) begin", 2 )
