@@ -1,5 +1,8 @@
    - generate a matrix multiply testbench 
 
+   - in the testbenches when i instantiate the DUT modules I might not be using the right module names.
+     fuckkkkk
+
    - go back and change the TEST_SIZE stuff in dot_product testbench
 
    - figure out how to generate select streams (LFSR stuff needs figuring out)
