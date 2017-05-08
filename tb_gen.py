@@ -53,12 +53,12 @@ def generate( args ):
       os.makedirs( data )
  
    # write the matrix multiply testbench
-   gen_mm_data( data, M, N, O )
+   gen_mm_data( data, M, N, O, args.rep )
    with open( os.path.join( tb, mm_tb_name + ".v" ), 'w' ) as f:
       write_mm_tb( f, mm_tb_name, mm_dut_name, M, N, O ) 
 
    # write the dot product testbench
-   gen_dp_data( data, args.rep, N )
+   gen_dp_data( data, N, args.rep )
    with open( os.path.join( tb, dp_tb_name + ".v" ), 'w' ) as f:
       write_dp_tb( f, dp_tb_name, dp_dut_name, args.rep, N )
 
@@ -419,7 +419,7 @@ def write_nadder_tb_header( f ):
 #  batch, an int, batch size M  (in matrix multiply MxN *NxO)
 #  inpt, an int, input feature size N
 #  output, an int, output feature size O
-def gen_mm_data( data_dir, batch, inpt, outpt ):
+def gen_mm_data( data_dir, batch, inpt, outpt, rep ):
    # compute the width of the select stream
    select_width = clogb2( inpt )
 
@@ -455,7 +455,7 @@ def gen_mm_data( data_dir, batch, inpt, outpt ):
          for o in range(0, outpt):
             # slice a vector out of the weight matrix
             output_vector = weight_matrix[(o*inpt):((o+1)*inpt)] 
-            dot_product = sc_dot_product( batch_vector, output_vector, select_streams[i] )
+            dot_product = sc_dot_product( batch_vector, output_vector, select_streams[i], rep )
             result_matrix.append( dot_product )
 
       results.append( result_matrix )
@@ -491,7 +491,7 @@ def gen_mm_data( data_dir, batch, inpt, outpt ):
 #  data_dir, the directory to write the data files into
 #  rep, a string specifying the stochastic representation. Either 'uni' or 'bi'.
 #  length, an int, the length of the input vectors
-def gen_dp_data( data_dir, rep, length ):
+def gen_dp_data( data_dir, length, rep ):
    # compute the bit width of the select streams
    select_width = clogb2( length )
 
@@ -515,7 +515,7 @@ def gen_dp_data( data_dir, rep, length ):
 
    # generate the expected outputs
    for i in range(0, _DP_TEST_SIZE):
-      res = sc_dot_product( data_streams[ i ], weight_streams[ i ], select_streams[ i ] )
+      res = sc_dot_product( data_streams[ i ], weight_streams[ i ], select_streams[ i ], rep )
       results.append( res )           
 
    # Open and write data to files 
@@ -547,9 +547,15 @@ def gen_dp_data( data_dir, rep, length ):
 # Parameters:
 #  data_vec and weight_vec are arrays of 1's and 0's
 #  sel, is an integer in the range of 0 to length-1, where length is size of vectors
-def sc_dot_product( data_vec, weight_vec, sel ):
+def sc_dot_product( data_vec, weight_vec, sel, rep='uni' ):
    reverseIndex = len(data_vec) - 1 - sel
-   return data_vec[reverseIndex] & weight_vec[reverseIndex]
+   if rep == 'uni':
+      # uni polar multiplier is an AND gate
+      return data_vec[reverseIndex] & weight_vec[reverseIndex]
+   else if rep == 'bi':
+      # bi polar multiplier is an XNOR gate
+      return ~(data_vec[reverseIndex] ^ weight_vec[reverseIndex])
+      
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.

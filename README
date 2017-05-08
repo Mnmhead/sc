@@ -30,3 +30,8 @@ The following arguments can be processed by the script:
 -alaghi
    specifies that alaghi adders are used instead of conventional stochastic 
    adders.
+
+
+
+
+The srcs directory contains a bunch of raw stochastic verilog code. For now it can be ignored.
