@@ -14,12 +14,10 @@
 
    - make a matrix multiply wrapper (after I fukin figure out how)
 
-   - make a bipolar multiply testbench.
-   
-   - make an alahgi adder testbench. 
+   - verify bipolar multiply testbench.
+   - verify alahgi adder testbench. 
    
    - make an alaghi adder tree that adds n inputs, where n is any natural number.
-
    - add support for alahgi adder
 
    - Is it best to have arguments be the means of specifying the modules.
