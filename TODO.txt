@@ -1,6 +1,3 @@
-   - verify that matrix multiply test bench is working
-   - verify dotproduct with bipolar rep works
-
    - need to figure out how to pass module names around to different generation scripts
 
    - figure out how to generate select streams (LFSR stuff needs figuring out)
@@ -16,9 +13,7 @@
 
    - make a matrix multiply wrapper (after I fukin figure out how)
 
-   - verify bipolar multiply testbench.
    - verify alahgi adder testbench. 
-   
    - make an alaghi adder tree that adds n inputs, where n is any natural number.
    - add support for alahgi adder
 

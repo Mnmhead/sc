@@ -450,28 +450,14 @@ def gen_mm_data( data_dir, batch, inpt, outpt, rep ):
       input_matrix = input_matrices[ i ]
       weight_matrix = weight_matrices[ i ]
 
-      index = 0
-
       for m in range(0, batch):
          # slice a vector out of input matrix
          batch_vector = input_matrix[(m*inpt):((m+1)*inpt)]
          for o in range(0, outpt):
             # slice a vector out of the weight matrix
             output_vector = weight_matrix[(o*inpt):((o+1)*inpt)]
-            print( "batch matrix: " )
-            print( input_matrix ) 
-            print( "Batch vector: " )
-            print( batch_vector )
-            print( "output matrix: " )
-            print( weight_matrix )
-            print( "Output vector: " )
-            print( output_vector )
             dot_product = sc_dot_product( batch_vector, output_vector, select_streams[i], rep )
-            print( "Select number: " + str(select_streams[i]) )
-            print( "dot_prod result for index " + str(index) + ": " + str(dot_product) )
-            print( "" )
             result_matrix.append( dot_product )
-            index += 1
 
       results.append( result_matrix )
          
@@ -569,8 +555,11 @@ def sc_dot_product( data_vec, weight_vec, sel, rep='uni' ):
       return data_vec[reverseIndex] & weight_vec[reverseIndex]
    elif rep == 'bi':
       # bi polar multiplier is an XNOR gate
-      return ~(data_vec[reverseIndex] ^ weight_vec[reverseIndex])
-      
+      xor = data_vec[reverseIndex] ^ weight_vec[reverseIndex]
+      if xor == 1:
+         return 0
+      elif xor == 0:
+         return 1
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.

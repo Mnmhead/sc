@@ -23,7 +23,7 @@ module sc_multiplier_bi_tb();
 
 		// run through all combinations of inputs
 		x = 0; y = 0; #5;
-		if( z != 0 ) begin
+		if( z != 1 ) begin
 			$display("Error incorrect output. x: %d, y: %d, res: %d\n", x, y, z);
 			errors = errors + 1;
 		end
