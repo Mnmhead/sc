@@ -1,6 +1,8 @@
    - verify that matrix multiply test bench is working
    - verify dotproduct with bipolar rep works
 
+   - need to figure out how to pass module names around to different generation scripts
+
    - figure out how to generate select streams (LFSR stuff needs figuring out)
      counter is the easiest way. (Vander corpit is wild, look up what that is)
 
