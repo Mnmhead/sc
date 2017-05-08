@@ -53,7 +53,7 @@ def generate( args ):
       os.makedirs( data )
  
    # write the matrix multiply testbench
-   # gen_mm_data( data, M, N, O )
+   gen_mm_data( data, M, N, O )
    with open( os.path.join( tb, mm_tb_name + ".v" ), 'w' ) as f:
       write_mm_tb( f, mm_tb_name, mm_dut_name, M, N, O ) 
 
@@ -320,7 +320,7 @@ def write_dp_tb( f, module_name, dut_name, rep, length ):
 #  module_name, the name of the testbench module
 #  dut_name, a string, the module to test
 #  n, an int, the number of inputs to the nadder
-def write_nadder_tb( f, module_name, n ):
+def write_nadder_tb( f, module_name, dut_name, n ):
    # write the header comment
    write_nadder_tb_header( f )
 
@@ -420,7 +420,69 @@ def write_nadder_tb_header( f ):
 #  inpt, an int, input feature size N
 #  output, an int, output feature size O
 def gen_mm_data( data_dir, batch, inpt, outpt ):
-   pass
+   # compute the width of the select stream
+   select_width = clogb2( inpt )
+
+   input_matrices = [] # array of flattened (batch x inpt) matrices
+   weight_matrices = [] # array of flattened, transposed (inpt x outpt) matrices
+   select_streams = [] # a 1D array of select numbers 
+   results = [] # an array of flattened result matrices (batch x outpt)
+
+   # generate the select streams
+   for i in range(0, _MM_TEST_SIZE):
+      select_streams.append( random.randint( 0, inpt - 1 ) )
+
+   # generate the input and weight matrices
+   for i in range(0, _MM_TEST_SIZE):
+      input_matrix = []
+      for j in range(0, batch*inpt):
+         input_matrix.append( random.randint( 0, 1 ) )
+      input_matrices.append( input_matrix )      
+ 
+      weight_matrix = []  
+      for k in range(0, inpt*outpt):
+         weight_matrix.append( random.randint( 0, 1 ) )
+      weight_matrices.append( weight_matrix )
+
+   # compute the expected result matrices
+   for i in range(0, _MM_TEST_SIZE):
+      result_matrix = []
+      input_matrix = input_matrices[ i ]
+      weight_matirx = weight_matrices[ i ]
+      for m in range(0, batch):
+         # slice a vector out of input matrix
+         batch_vector = input_matrix[(m*inpt):((m+1)*inpt)]
+         for o in range(0, outpt):
+            # slice a vector out of the weight matrix
+            output_vector = weight_matrix[(o*inpt):((o+1)*inpt)] 
+            dot_product = sc_dot_product( batch_vector, output_vector, select_streams[i] )
+            result_matrix.append( dot_product )
+
+      results.append( result_matrix )
+         
+   # write input, weights, select and results to data files 
+   with open( os.path.join( data_dir, _MM_INPUT_FN ), 'w' ) as f:
+      for matrix in input_matrices: 
+         m_str = stream_to_str( matrix )
+         f.write( m_str + "\n" )
+
+   with open( os.path.join( data_dir, _MM_WEIGHT_FN ), 'w' ) as f:
+      for matrix in weight_matrices: 
+         m_str = stream_to_str( matrix )
+         f.write( m_str + "\n" )
+
+   with open( os.path.join( data_dir, _MM_SEL_FN ), 'w' ) as f:
+      for sel in select_streams:
+         s_str = int_to_n_length_binary( sel, select_width ) 
+         f.write( s_str + "\n" )
+
+   with open( os.path.join( data_dir, _MM_RES_FN ), 'w' ) as f:
+      for matrix in results:
+         m_str = stream_to_str( matrix )
+         f.write( m_str + "\n" )
+
+   return
+          
 
 # This function generates a few files used by the dot product testbench.
 # The files generated contain binary data used as input vectors.
