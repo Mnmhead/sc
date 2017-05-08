@@ -29,13 +29,19 @@ def generate( args ):
    O = args.output_size 
 
    # if a module name is supplied, concatenate module names
-   mm_tb_name = "sc_matrix_mult_tb"
-   dp_tb_name = "sc_dot_product_tb"
-   nadder_tb_name = "sc_nadder_tb"
+   mm_tb_name = MATRIX + "_tb"
+   mm_dut_name = MATRIX
+   dp_tb_name = DOT_PROD + "_tb"
+   dp_dut_name = DOT_PROD
+   nadder_tb_name = NADDER + "_tb"
+   nadder_dut_name = NADDER
    if args.module_name is not "":
       mm_tb_name += "_" + args.module_name
+      mm_dut_name += "_" + args.module_name
       dp_tb_name += "_" + args.module_name
+      dp_dut_name += "_" + args.module_name
       nadder_tb_name += "_" + args.module_name
+      nadder_dut_name += "_" + args.module_name
 
    # make a folder for the testbenches called 'tb'
    # make a folder call 'data' within 'tb'
@@ -49,27 +55,26 @@ def generate( args ):
    # write the matrix multiply testbench
    # gen_mm_data( data, M, N, O )
    with open( os.path.join( tb, mm_tb_name + ".v" ), 'w' ) as f:
-      write_mm_tb( f, mm_tb_name, M, N, O ) 
-      pass
+      write_mm_tb( f, mm_tb_name, mm_dut_name, M, N, O ) 
 
    # write the dot product testbench
    gen_dp_data( data, args.rep, N )
    with open( os.path.join( tb, dp_tb_name + ".v" ), 'w' ) as f:
-      write_dp_tb( f, dp_tb_name, args.rep, N )
-      pass
+      write_dp_tb( f, dp_tb_name, dp_dut_name, args.rep, N )
 
    # write the nadder testbench module
    with open( os.path.join( tb, nadder_tb_name + ".v" ), 'w' ) as f:
-      write_nadder_tb( f, nadder_tb_name, N )
+      write_nadder_tb( f, nadder_tb_name, nadder_dut_name, N )
 
 # Writes the testbench module for the generated sc_matrix_multiply module.
 # Parameters:
 # f, file to write to 
-# module_name, a string 
+# module_name, a string, name of the testbench
+# dut_name, a string the module to test
 # batch, an int, specifies batch size (in a matrix mult MxN * NxO, M is batch size)
 # inpt, an int, specifies input feature size (N)
 # outpt, an int, specifies output feature size (O)
-def write_mm_tb( f, module_name, batch, inpt, outpt ):
+def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    # write header comment
    write_mm_tb_header( f )
    
@@ -139,7 +144,7 @@ def write_mm_tb( f, module_name, batch, inpt, outpt ):
    write_line( f, "expected_results[result_index], outputStreams, result_index);", 5 )
    write_line( f, "errors = errors + 1;", 4 )
    write_line( f, "end", 3 )
-   write_line( f, ""
+   write_line( f, "" )
    write_line( f, "result_index = result_index + 1;", 3 )
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
@@ -153,7 +158,7 @@ def write_mm_tb( f, module_name, batch, inpt, outpt ):
    write_line( f, "end", 1 )
    write_line( f, "" )
    write_line( f, "// instantiate module", 1 )
-   write_line( f, "sc_matrix_multiply dut(", 1 )  # fix this line ( USE RIGHT MODULE NAME TODO)
+   write_line( f, dut_name + " dut(", 1 )
    write_line( f, "clk,", 2 )
    write_line( f, "rst,", 2 )
    write_line( f, "inputStreams,", 2 )
@@ -188,10 +193,11 @@ def write_mm_tb( f, module_name, batch, inpt, outpt ):
 # Writes the testbench module for the generated sc_dot_product.
 # Parameters:
 #  f, the file to write to
+#  module_name, a string, the name of the module
+#  dut_name, a string, the name of the module to test (device under test)
 #  rep, a string specifying the stochastic representation (either uni or bi)
-#  module_name,  a string, the name of the module
 #  length, an integer, the length of the input vectors
-def write_dp_tb( f, module_name, rep, length ):
+def write_dp_tb( f, module_name, dut_name, rep, length ):
    # write the header comment
    write_dp_tb_header( f )
 
@@ -275,7 +281,7 @@ def write_dp_tb( f, module_name, rep, length ):
    write_line( f, "end", 1 )
    write_line( f, "" )
    write_line( f, "// instantiate module", 1 )
-   write_line( f, "sc_dot_product dut(", 1 )
+   write_line( f, dut_name + " dut(", 1 )
    write_line( f, ".clk(clk),", 2 )
    write_line( f, ".rst(rst),", 2 ) 
    write_line( f, ".data(data),", 2 )
@@ -312,6 +318,7 @@ def write_dp_tb( f, module_name, rep, length ):
 # Parameter:
 #  f, the file to write to
 #  module_name, the name of the testbench module
+#  dut_name, a string, the module to test
 #  n, an int, the number of inputs to the nadder
 def write_nadder_tb( f, module_name, n ):
    # write the header comment
@@ -335,7 +342,7 @@ def write_nadder_tb( f, module_name, n ):
    write_line( f, "reg [SELECT_WIDTH-1:0]  sel;", 1 )
    write_line( f, "wire                    out;", 1 )
    write_line( f, "" )
-   write_line( f, "sc_nadder dut(.x(x), .sel(sel), .out(out));", 1 )
+   write_line( f, dut_name + " dut(.x(x), .sel(sel), .out(out));", 1 )
    write_line( f, "" )
    write_line( f, "integer errors;", 1 )
    write_line( f, "initial errors = 0;", 1 )

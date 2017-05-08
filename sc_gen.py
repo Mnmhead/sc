@@ -5,10 +5,6 @@
 from common import *
 import os
 
-MATRIX = "sc_matrix_mult"
-DOT_PROD = "sc_dot_product"
-NADDER = "sc_nadder"
-
 # Generates modules in the stochastic domain. 
 # Opens and writes to files.
 # The contents of the files are specified by the users input.

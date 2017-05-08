@@ -4,6 +4,11 @@
 import math
 from time import gmtime, strftime
 
+# shared file names
+MATRIX = "sc_matrix_mult"
+DOT_PROD = "sc_dot_product"
+NADDER = "sc_nadder"
+
 # Writes string to file f with numTabs number of tabs before
 # the string and a newline character after the string.
 def write_line( f, string, numTabs=0 ):
