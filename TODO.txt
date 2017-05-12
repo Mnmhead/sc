@@ -1,18 +1,22 @@
-   - verify that matrix multiply test bench is working
-   - verify dotproduct with bipolar rep works
-
    - figure out how to generate select streams (LFSR stuff needs figuring out)
      counter is the easiest way. (Vander corpit is wild, look up what that is)
+
+   - make a matrix multiply wrapper (after I fukin figure out how)
+     There can be two kinds of wrappers. One wrapper can take a hard-coded
+     set of weights and hard-wire those weights into the module? Maybe talk more
+     about this at the next meeting. I am confused how we can use hard-wired weights
+     when we will need to be changing the weights during training.
 
    - think about how the matrix multiply wrapper is going to work.
       I can understand the binary->stochastic portion (weight and input stream generation)
       How to I make the back-end, meaning, how do I make stochastic->binary conversion.
+      I was told by vincent that its Ok at this point to simply count up the values
+      when doing stochastic to digital conversion...I should talk more to this point
+      at the next meeting.
 
-      OK. We will have 3? possible types of noise source choices. We have weights, input_features,
-      and the select streams. I guess we will have choices for each available through arguments
-      to the script.
-
-   - make a matrix multiply wrapper (after I fukin figure out how)
+   - OK. We will have 3? possible types of noise source choices. We have weights, input_features,
+     and the select streams. I guess we will have choices for each available through arguments
+     to the script.
 
    - verify bipolar multiply testbench.
    - verify alahgi adder testbench. 
