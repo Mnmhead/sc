@@ -1,3 +1,6 @@
+   - need to figure out how to pass module names around to different generation scripts
+   - maybe I should disable module suffixes for now....
+
    - figure out how to generate select streams (LFSR stuff needs figuring out)
      counter is the easiest way. (Vander corpit is wild, look up what that is)
 
@@ -18,9 +21,7 @@
      and the select streams. I guess we will have choices for each available through arguments
      to the script.
 
-   - verify bipolar multiply testbench.
    - verify alahgi adder testbench. 
-   
    - make an alaghi adder tree that adds n inputs, where n is any natural number.
    - add support for alahgi adder
 

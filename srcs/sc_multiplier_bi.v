@@ -18,8 +18,7 @@ module sc_multiplier_bi(
 
    input x;
    input y;
+   output z;
 
    assign z = ~(x ^ y);
-
-   output z;
 endmodule

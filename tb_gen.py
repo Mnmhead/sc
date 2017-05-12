@@ -82,22 +82,22 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    select_width = clogb2( inpt )
 
    write_line( f, "module " + module_name + "();" )
-   write_line( f, "iarameter BATCH_SIZE =      " + str(batch) + "; // M", 1 )
+   write_line( f, "parameter BATCH_SIZE =      " + str(batch) + "; // M", 1 )
    write_line( f, "parameter INPUT_FEATURES =  " + str(inpt) + "; // N", 1 ) 
    write_line( f, "parameter OUTPUT_FEATURES = " + str(outpt) + "; // O", 1 )
    write_line( f, "parameter SELECT_WIDTH =    " + str(select_width) + ";", 1 )
-   write_line( f, "parameter INPUT_MATRICES =  " + _MM_INPUT_FN + ";", 1 )
-   write_line( f, "parameter WEIGHT_MATRICES = " + _MM_WEIGHT_FN + ";", 1 )
-   write_line( f, "parameter SELECT_STREAM =   " + _MM_SEL_FN + ";", 1 )
-   write_line( f, "parameter MM_RESULT =       " + _MM_RES_FN + ";", 1 )
+   write_line( f, "parameter INPUT_MATRICES =  \"" + _MM_INPUT_FN + "\";", 1 )
+   write_line( f, "parameter WEIGHT_MATRICES = \"" + _MM_WEIGHT_FN + "\";", 1 )
+   write_line( f, "parameter SELECT_STREAM =   \"" + _MM_SEL_FN + "\";", 1 )
+   write_line( f, "parameter MM_RESULT =       \"" + _MM_RES_FN + "\";", 1 )
    write_line( f, "parameter TEST_SIZE =       " + str(_MM_TEST_SIZE) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// module inputs and outputs", 1 )
    write_line( f, "reg clk;", 1 )
    write_line( f, "reg rst;", 1 )
-   write_line( f, "reg [BATCH_SIZE*INPUT_FEATURES-1:0] inputStreams", 1 )
-   write_line( f, "reg [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams;", 1 )
-   write_line( f, "reg [SELECT_WIDTH-1:0]                 sel;", 1 )
+   write_line( f, "wire [BATCH_SIZE*INPUT_FEATURES-1:0] inputStreams;", 1 )
+   write_line( f, "wire [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams;", 1 )
+   write_line( f, "wire [SELECT_WIDTH-1:0]                 sel;", 1 )
    write_line( f, "wire [BATCH_SIZE*OUTPUT_FEATURES-1:0]    outputStreams;", 1 )
    write_line( f, "wire                                     outputWriteEn;", 1 )
    write_line( f, "" )
@@ -107,10 +107,10 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "reg [SELECT_WIDTH-1:0]                 test_sel [TEST_SIZE-1:0];", 1 )
    write_line( f, "reg [BATCH_SIZE*OUTPUT_FEATURES-1:0] expected_results [TEST_SIZE-1:0];", 1 )
    write_line( f, "initial begin", 1 )
-   write_line( f, "$readmemb(INPUT_MATRICIES, test_input, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(WEIGHT_MATRICIES, test_weight, 0, TEST_SIZE-1);", 2 )
+   write_line( f, "$readmemb(INPUT_MATRICES, test_input, 0, TEST_SIZE-1);", 2 )
+   write_line( f, "$readmemb(WEIGHT_MATRICES, test_weight, 0, TEST_SIZE-1);", 2 )
    write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(MM_RESULT, test_expected_results, 0, TEST_SIZE-1);", 2 )
+   write_line( f, "$readmemb(MM_RESULT, expected_results, 0, TEST_SIZE-1);", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
    write_line( f, "// Test input assignment logic", 1 )
@@ -127,7 +127,7 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
    write_line( f, "assign inputStreams = test_input[test_index];", 1 )
-   write_line( f, "assign weightStreams = test_input[test_index];", 1 )
+   write_line( f, "assign weightStreams = test_weight[test_index];", 1 )
    write_line( f, "assign sel = test_sel[test_index];", 1 )
    write_line( f, "" )
    write_line( f, "// output checking and error handling", 1 )
@@ -204,15 +204,15 @@ def write_dp_tb( f, module_name, dut_name, rep, length ):
    # compute number of select streams needed 
    select_width = clogb2( length )
 
-   write_line( f, "`timesclae 1ns / 10ps" )
+   write_line( f, "`timescale 1ns / 10ps" )
    write_line( f, "" )   
-   write_line( f, "module ic_dot_product_tb();" )
+   write_line( f, "module " + module_name + "();" )
    write_line( f, "parameter LENGTH =        " + str(length) + ";", 1 )
    write_line( f, "parameter SELECT_WIDTH =  " + str(select_width) + ";", 1 )
-   write_line( f, "parameter DATA_VECTOR =     " + _DP_DATA_FN + ";", 1 )
-   write_line( f, "parameter WEIGHT_VECTOR =   " + _DP_WEIGHT_FN + ";", 1 )
-   write_line( f, "parameter SELECT_STREAM =   " + _DP_SELECT_FN + ";", 1 )
-   write_line( f, "parameter DP_RESULT =       " + _DP_RES_FN + ";", 1 )
+   write_line( f, "parameter DATA_VECTOR =   \"" + _DP_DATA_FN + "\";", 1 )
+   write_line( f, "parameter WEIGHT_VECTOR = \"" + _DP_WEIGHT_FN + "\";", 1 )
+   write_line( f, "parameter SELECT_STREAM = \"" + _DP_SELECT_FN + "\";", 1 )
+   write_line( f, "parameter DP_RESULT =     \"" + _DP_RES_FN + "\";", 1 )
    write_line( f, "parameter TEST_SIZE =     " + str(_DP_TEST_SIZE) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// module inputs and outputs", 1 )
@@ -448,13 +448,14 @@ def gen_mm_data( data_dir, batch, inpt, outpt, rep ):
    for i in range(0, _MM_TEST_SIZE):
       result_matrix = []
       input_matrix = input_matrices[ i ]
-      weight_matirx = weight_matrices[ i ]
+      weight_matrix = weight_matrices[ i ]
+
       for m in range(0, batch):
          # slice a vector out of input matrix
          batch_vector = input_matrix[(m*inpt):((m+1)*inpt)]
          for o in range(0, outpt):
             # slice a vector out of the weight matrix
-            output_vector = weight_matrix[(o*inpt):((o+1)*inpt)] 
+            output_vector = weight_matrix[(o*inpt):((o+1)*inpt)]
             dot_product = sc_dot_product( batch_vector, output_vector, select_streams[i], rep )
             result_matrix.append( dot_product )
 
@@ -552,10 +553,13 @@ def sc_dot_product( data_vec, weight_vec, sel, rep='uni' ):
    if rep == 'uni':
       # uni polar multiplier is an AND gate
       return data_vec[reverseIndex] & weight_vec[reverseIndex]
-   else if rep == 'bi':
+   elif rep == 'bi':
       # bi polar multiplier is an XNOR gate
-      return ~(data_vec[reverseIndex] ^ weight_vec[reverseIndex])
-      
+      xor = data_vec[reverseIndex] ^ weight_vec[reverseIndex]
+      if xor == 1:
+         return 0
+      elif xor == 0:
+         return 1
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.
