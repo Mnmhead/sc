@@ -22,16 +22,26 @@ def generate( args ):
       write_shift_register_module( f, shift_name, shift )
 
    """
-   width = args.precision
-   reverse = False
-   with open( os.path.join( args.dest_dir, counter_name + ".v"), 'w' ) as f:
-      write_counter_module( f, counter_name, width )
-   """
+   counter_name = "counter"
+   lfsr_name = "lfsr"
 
-   """
-   data_len = args.precision
-   with open( os.path.join( args.dest_dir, lfsr_name + ".v"), 'w' ) as f:
+   width = 32
+   reverse = False
+   with open( os.path.join( args.dest_dir, counter_name + ".v" ), 'w' ) as f:
+      write_counter_module( f, counter_name, width )
+   
+   data_len = 32
+   with open( os.path.join( args.dest_dir, lfsr_name + ".v" ), 'w' ) as f:
       write_lfsr_module( f, lfsr_name, data_len )
+
+   with open( os.path.join( args.dest_dir, "sd_converter.v" ), 'w' ) as f:
+      write_sd_converter_module( f, "sd_converter", 32 )
+
+   with open( os.path.join( args.dest_dir, "ds_converter.v" ), 'w' ) as f:
+      write_ds_converter_module( f, "ds_converter", 32 )
+
+   with open( os.path.join( args.dest_dir, "sng.v" ), 'w' ) as f:
+      write_sng_module( f, "sng", 32, rng="LFSR" )
    """
 
    return
@@ -44,23 +54,19 @@ def generate( args ):
 #  max_num, the number the counter reaches before it wraps back to 0 (counter's output is [0,max_num])
 #      max_num defaults to 2^(width) - 1 .
 #  reverse, an optional boolean which causes the output of the counter to be reversed
-def write_counter_module( f, module_name, width, max_num=0, reverse=False ):
+def write_counter_module( f, module_name, width, max_num=None, reverse=False ):
    # write the header comment
    write_header_counter( f )
+
+   if max_num is None:
+      max_num = math.pow( 2, width ) - 1
 
    # calculate bit_width of the counter
    bit_width = clogb2( max_num )
    
-   write_line( f, "module " + module_name + "(" )
-   write_line( f, "clk,", 1 )
-   write_line( f, "rst,", 1 )
-   write_line( f, "enable,", 1 )
-   write_line( f, "restart,", 1 )
-   write_line( f, "out", 1 )
-   write_line( f, ");" )
-   write_line( f, "" )
+   write_line( f, "module " + module_name + "();" )
    write_line( f, "parameter N = " + str(bit_width) + ";", 1 )
-   write_line( f, "parameter BOUND = " + str(max_num) + "; // the upper bound of the range of this counter", 1 )
+   write_line( f, "parameter BOUND = " + str(int(max_num)) + "; // the upper bound of the range of this counter", 1 )
    write_line( f, "" )
    write_line( f, "input clk;", 1 )
    write_line( f, "input rst;", 1 )
@@ -127,16 +133,8 @@ def write_lfsr_module( f, module_name, data_len, max_num=0, zero_detect=True ):
    taps_dict[32] = [32, 31, 30, 10]
 
    # begin writing the module
-   write_line( f, "module " + module_name + "(" )
-   write_line( f, "clk,", 1 )
-   write_line( f, "rst,", 1 )
-   write_line( f, "seed,", 1 )
-   write_line( f, "enable,", 1 )
-   write_line( f, "restart,", 1 )
-   write_line( f, "data", 1 )
-   write_line( f, ");" )
-   write_line( f, "" )
-   write_line( f, "parameter N = " + str(data_len) + ";" )
+   write_line( f, "module " + module_name + "();" )
+   write_line( f, "parameter N = " + str(data_len) + ";", 1 )
    write_line( f, "" )
    write_line( f, "input clk;", 1 )
    write_line( f, "input rst;", 1 )
@@ -163,8 +161,8 @@ def write_lfsr_module( f, module_name, data_len, max_num=0, zero_detect=True ):
    # add the first tap, then delete it from list
    taps_str = "shift_reg[" + str(taps[0]) + "]"
    del taps[0]
-   for i in range(0,taps):
-      taps_str += " ^ shift_reg[" + str(taps[i]) + "]"
+   for tap in taps:
+      taps_str += " ^ shift_reg[" + str(tap) + "]"
    taps_str += ";"
 
    write_line( f, "wire xor_out;", 1 )
@@ -228,6 +226,116 @@ def write_shift_register_module( f, module_name, shift ):
 
    return
 
+# Writes a digital to stochastic converter module.
+# Parameters:
+#  f, the file to write to
+#  module_name, a string, the name of the module
+#  precision, an integer, the precision of the output binary number
+def write_sd_converter_module( f, module_name, precision ):
+   # write the header comment
+   write_header_sd_converter( f )
+
+   write_line( f, "module " + module_name + "();" )
+   write_line( f, "parameter PRECISION = " + str(precision) + ";", 1 )
+   write_line( f, "" )
+   write_line( f, "input clk;", 1 )
+   write_line( f, "input rst;", 1 ) 
+   write_line( f, "input in;", 1 )
+   write_line( f, "input last", 1 )
+   write_line( f, "output [PRECISION-1:0] out", 1 )
+   write_line( f, "" )
+   write_line( f, "reg [PRECISION-1:0] count;", 1 )
+   write_line( f, "" )
+   write_line( f, "always @ (posedge clk) begin", 1 )
+   write_line( f, "if (rst == 1 || last == 1) begin", 2 )
+   write_line( f, "count <= 0;", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "else begin", 2 )
+   write_line( f, "count <= count + in;", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "end", 1 )
+   write_line( f, "" )
+   write_line( f, "assign out = count;", 1 )
+   write_line( f, "" )
+   write_line( f, "endmodule // " + module_name )
+
+   return
+
+# Write a digital to stochastic converter module.
+# Parameters:
+#  f, the file to write to
+#  module_name, a string, the name of the module
+#  precision, an integer, the precision of the input binary number and 
+#     input random number
+def write_ds_converter_module( f, module_name, precision ):
+   # write the header comment
+   write_header_ds_converter( f )
+
+   write_line( f, "module " + module_name + "();" )
+   write_line( f, "parameter PRECISION = " + str(precision) + ";", 1 )
+   write_line( f, "" )
+   write_line( f, "input [PRECISION-1:0] in;", 1 )
+   write_line( f, "input [PRECISION-1:0] rng;", 1 )
+   write_line( f, "output out", 1 )
+   write_line( f, "" )
+   write_line( f, "assign out = (rng < in) ? 1 : 0;", 1 )
+   write_line( f, "" )
+   write_line( f, "endmodule // " + module_name )
+
+   return
+
+# Writes a stochastic number generator module.
+# Parameters:
+#  f, the file to write to
+#  module_name, a string, the name of the module
+#  precision, an integer, the precision of the input binary number and 
+#     input random number
+#  rng, a string, specifies the kind of noise source for the stochastic
+#     number generator. Options are: LFSR, COUNTER, REVERSECOUNTER (VANDERCORPIT?)
+def write_sng_module( f, module_name, precision, rng="LFSR" ):
+   # write the header comment
+   write_header_sng( f )
+
+   write_line( f, "module " + module_name + "();" )
+   write_line( f, "parameter PRECISION = " + str(precision) + ";", 1 )
+   write_line( f, "" )
+   write_line( f, "input clk;", 1 )
+   write_line( f, "input rst;", 1 )
+   write_line( f, "input [PRECISION-1] in;", 1 )
+   write_line( f, "output out;", 1 )
+   write_line( f, "" )
+   write_line( f, "// instantiate noise source", 1 )
+   write_line( f, "wire [PRECISION-1:0] rng;", 1 )
+
+   # im not sure how the whole module name thing is going to work out here yet.
+   # i need to re-evaluate how module naming works.
+   if rng == "LFSR":
+      write_line( f, "lfsr LFSR(.clk(clk), .rst(rst), .out(rng));", 1 )
+   elif rng == "COUNTER":
+      write_line( f, "counter COUNTER(.clk(clk), .rst(rst), .enable(1), .restart(0), .out(rng));", 1 )
+   elif rng == "REVERSECOUNTER":
+      write_line( f, "reverse_counter COUNTER(.clk(clk), .rst(rst), .enable(1), .restart(0), .out(rng));", 1 )
+  
+   write_line( f, "" ) 
+   write_line( f, "// pass the noise and input to the converter and clock the output", 1 )
+   write_line( f, "reg ds_out [1:0];", 1 )
+   write_line( f, "ds_converter DS_CONVERT(.in(in), .rng(rng), .out(ds_out[0]));", 1 )
+   write_line( f, "" )
+   write_line( f, "always @(posedge clk) begin", 1 )
+   write_line( f, "if (rst == 1) begin", 2 )
+   write_line( f, "ds_out[0] = 0;", 3 )
+   write_line( f, "ds_out[1] = 0;", 3 )
+   write_line( f, "end else begin", 2 )
+   write_line( f, "ds_out[1] <= ds_out[0];", 3 )
+   write_line( f, "end", 2 )
+   write_line( f, "end", 1 )
+   write_line( f, ""  )
+   write_line( f, "assign out = ds_out[1];", 1 )
+   write_line( f, "" )
+   write_line( f, "endmodule // " + module_name )
+
+   return
+
 # Writes the header comment for the shift_register module to file, f.
 def write_header_shiftreg( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
@@ -264,3 +372,49 @@ def write_header_lfsr( f ):
 
    return
 
+def write_header_sd_converter( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The module represents a stochastic to digital converter." )
+   write_line( f, "// For more information on stochastic computing:" )
+   write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
+   write_line( f, "//" )
+   write_line( f, "// Parameters: The PRECISION parameter determines the final precision of the digital" )
+   write_line( f, "// output (in number of bits)." )
+   write_line( f, "//" )
+   write_line( f, "// The input 'last' is used to choose the final length of the stochastic bitstreams" )
+   write_line( f, "// when converting back to standard digital." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
+
+   return
+
+def write_header_ds_converter( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The module represents a digital to stochastic converter." )
+   write_line( f, "// For more information on stochastic computing:" )
+   write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
+   write_line( f, "//" )
+   write_line( f, "// Note: Conversion is from digital to stochastic uni-polar representation." )
+   write_line( f, "// The range of each stochastic bitstream produced is [0,1]." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
+
+   return
+
+def write_header_sng( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The module represents a stochastic number generator." )
+   write_line( f, "// A wrapper for a digital to stochastic converter packaged with a noise" )
+   write_line( f, "// source (either lfsr, counter, reversed counter, vander corpi, etc)" )
+   write_line( f, "// For more information on stochastic computing:" )
+   write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
+
+   return

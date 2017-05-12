@@ -11,12 +11,11 @@
 
 module sng #(
    parameter PRECISION = 8
-) (
-   input clk,
-   input rst,
-   input [PRECISION-1] in,
-   output out
-);
+) ();
+   input clk;
+   input rst;
+   input [PRECISION-1] in;
+   output out;
 
    // instantiate an LFSR with the proper precision
    wire [PRECISION-1:0] rng;

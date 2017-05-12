@@ -20,9 +20,10 @@ module counter_n_bit #(
    end
 
    // optional reverse code
-   // genvar i;
-   // generate
-   //    for(i=0; i<10;i=i+1) assign out[i] = counter[N-1-i];
-   // endgenerate
+   // if reverse:
+   genvar i;
+   generate
+      for(i=0; i<10;i=i+1) assign out[i] = counter[N-1-i];
+   endgenerate
 
 endmodule // counter_n_bit
