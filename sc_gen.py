@@ -17,10 +17,6 @@ def generate( args ):
    mat_mult_name = MATRIX
    dp_name = DOT_PROD
    nadder_name = NADDER
-   if args.module_name is not "":
-      mat_mult_name += "_" + args.module_name
-      dp_name += "_" + args.module_name
-      nadder_name += "_" + args.module_name
 
    # write the matrix multiply module
    with open( os.path.join( args.dest_dir, mat_mult_name + ".v" ), 'w' ) as f: 

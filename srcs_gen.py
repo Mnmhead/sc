@@ -15,8 +15,6 @@ def generate( args ):
       shift = 0 # Ill have to figure out how much delay there will be for alaghi adder trees
 
    shift_name = "shift_" + str(shift) + "_register"
-   if args.module_name is not "":
-      shift_name += "_" + args.module_name
 
    with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
       write_shift_register_module( f, shift_name, shift )
@@ -28,20 +26,20 @@ def generate( args ):
    width = 32
    reverse = False
    with open( os.path.join( args.dest_dir, counter_name + ".v" ), 'w' ) as f:
-      write_counter_module( f, counter_name, width )
+      write_counter_module( f, COUNTER, width )
    
    data_len = 32
    with open( os.path.join( args.dest_dir, lfsr_name + ".v" ), 'w' ) as f:
-      write_lfsr_module( f, lfsr_name, data_len )
+      write_lfsr_module( f, LFSR, data_len )
 
    with open( os.path.join( args.dest_dir, "sd_converter.v" ), 'w' ) as f:
-      write_sd_converter_module( f, "sd_converter", 32 )
+      write_sd_converter_module( f, SD_CONVERTER, 32 )
 
    with open( os.path.join( args.dest_dir, "ds_converter.v" ), 'w' ) as f:
-      write_ds_converter_module( f, "ds_converter", 32 )
+      write_ds_converter_module( f, DS_CONVERTER, 32 )
 
    with open( os.path.join( args.dest_dir, "sng.v" ), 'w' ) as f:
-      write_sng_module( f, "sng", 32, rng="LFSR" )
+      write_sng_module( f, SNG, 32, rng="LFSR" )
    """
 
    return

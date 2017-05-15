@@ -35,13 +35,6 @@ def generate( args ):
    dp_dut_name = DOT_PROD
    nadder_tb_name = NADDER + "_tb"
    nadder_dut_name = NADDER
-   if args.module_name is not "":
-      mm_tb_name += "_" + args.module_name
-      mm_dut_name += "_" + args.module_name
-      dp_tb_name += "_" + args.module_name
-      dp_dut_name += "_" + args.module_name
-      nadder_tb_name += "_" + args.module_name
-      nadder_dut_name += "_" + args.module_name
 
    # make a folder for the testbenches called 'tb'
    # make a folder call 'data' within 'tb'

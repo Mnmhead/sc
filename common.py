@@ -8,6 +8,12 @@ from time import gmtime, strftime
 MATRIX = "sc_matrix_mult"
 DOT_PROD = "sc_dot_product"
 NADDER = "sc_nadder"
+COUNTER = "counter"
+REVERSECOUNTER = "reverse_counter"
+LFSR = "lfsr"
+SD_CONVERTER = "sd_converter"
+DS_CONVERTER = "ds_converter"
+SNG = "sng"
 
 # Writes string to file f with numTabs number of tabs before
 # the string and a newline character after the string.

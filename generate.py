@@ -25,10 +25,12 @@ def cli():
       '-dst', dest='dest_dir', action='store', type=str, required=False,
       default=".", help='Destination directory'
    )
+   """
    parser.add_argument(
-      '-name', dest='module_name', action='store', type=str, required=False,
+      '-name', dest='suffix', action='store', type=str, required=False,
       default='', help='Name sufix for all generated modules'
    )
+   """
    parser.add_argument(
       '-bs', dest='batch_size', action='store', type=int, required=False,
       default=4, help='Batch size'
