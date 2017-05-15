@@ -31,3 +31,7 @@ def get_time():
 # Computes the ceiling log base 2 of input.
 def clogb2( x ):
    return int(math.ceil( math.log( x, 2 ) ))
+
+# Computes the floor of log base 2 of input.
+def flogb2( x ):
+   return int(math.floor( math.log( x, 2 ) ))
