@@ -56,7 +56,8 @@ def write_alaghi_nadder_module( f, n, module_name="alaghi_nadder" ):
       sum_reg_strs.extend( sum_regs )
       alaghi_modules.extend( alaghi_tuples )
 
-
+   
+   # now we writ all the wires, registers and adders to the file
    print( wire_strs )
    print( "" )
    print( "" )
@@ -64,6 +65,35 @@ def write_alaghi_nadder_module( f, n, module_name="alaghi_nadder" ):
    print( "" )
    print( "" )
    print( alaghi_modules )
+
+   write_line( f, "// wires for this tree. The first number specifies the level of the tree.", 1 )
+   write_line( f, "// The second number is the 'name' (or index) of the wire within its level.", 1 )
+   for i in range(len(wire_strs)):
+      write_line( f, "wire " + wire_strs[i] + ";", 1 )
+
+   write_line( f, "" )
+   write_line( f, "// registers for each level of output.", 1 )
+   for i in range(len(sum_reg_strs)):
+      write_line( f, "reg " + sum_reg_strs[i] + ";", 1 )
+
+   write_line( f, "" )
+   write_line( f, "always @(posedge clk) begin", 1 )
+   for i in range(len(wire_strs)):
+      write_line( f, sum_reg_strs[i] + " <= " + wire_strs[i] + ";", 2 )
+
+   write_line( f, "end", 1 )
+   write_line( f, "" )
+   for i in range(len(alaghi_modules)):
+      (in1, in2, out) = alaghi_modules[i]
+      write_line( f, "alaghi_adder ADDER" + str(i) + "(.clk(clk), .rst(rst), " \
+                     + ".x(" + in1 + "), .y(" + in2 + "), " \
+                     + ".out(" + out + "));", 1 ) 
+
+   last_out = len(sum_reg_strs) - 1
+   write_line( f, "" )
+   write_line( f, "assign out = " + sum_reg_strs[last_out] + ";", 1 )
+   write_line( f, "" )
+   write_line( f, "endmodule // " + module_name )
 
 
 def generate_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
@@ -106,4 +136,4 @@ def generate_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
   
    return num_out
 
-generate_alaghi_nadder( 9 )
+generate_alaghi_nadder( 4 )
