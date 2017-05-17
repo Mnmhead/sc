@@ -85,9 +85,11 @@ if __name__ == '__main__':
    args = cli()
    print( "Generating Basic Modules..." )
    srcs_gen.generate( args )
+   print( "done!" )
    print( "Generating Modules..." )
    sc_gen.generate( args )
    print( "done!" )
    print( "Generating Testbenches..." )
    tb_gen.generate( args )
    print( "done!" )
+   
