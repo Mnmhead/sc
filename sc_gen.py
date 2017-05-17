@@ -172,7 +172,7 @@ def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False )
    write_line( f, "// add all element-wise products", 1 )
    write_line( f, "wire adder_res;", 1 )
    if alaghi:
-      write_line( f, "alaghi_nadder(.clk(clk), .rst(rst), .inpts(product_streams), .out(adder_res));", 1 )
+      write_line( f, "alaghi_nadder NADDER(.clk(clk), .rst(rst), .inpts(product_streams), .out(adder_res));", 1 )
    else:
       write_line( f, "sc_nadder NADDER(.x(product_streams), .sel(select), .out(adder_res));", 1 )
    write_line( f, "" )
@@ -192,7 +192,7 @@ def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False )
 
    delay = None
    if alaghi:
-      delay = clogb2( length ) # + some extra
+      delay = int(clogb2( length )) # + some extra
    else:
       # two clock cycle delay for standard dot product
       # 1 cycle for multiplication, 1 for addition (single mux)

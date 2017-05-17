@@ -12,7 +12,7 @@ def generate( args ):
    # make shift register for dot_products adder step
    shift = 2
    if( args.alaghi ):
-      shift = 0 # Ill have to figure out how much delay there will be for alaghi adder trees
+      shift = int(clogb2(args.input_size)) # Ill have to figure out how much delay there will be for alaghi adder trees
 
    shift_name = "shift_" + str(shift) + "_register"
 
