@@ -192,7 +192,9 @@ def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False )
 
    delay = None
    if alaghi:
-      delay = int(clogb2( length )) # + some extra
+      # delay for alaghi tree is one cycle for every level, plus one for
+      # final output register.
+      delay = int(clogb2( length )) + 1
    else:
       # two clock cycle delay for standard dot product
       # 1 cycle for multiplication, 1 for addition (single mux)
@@ -280,8 +282,8 @@ def write_alaghi_nadder_module( f, module_name, n ):
       alaghi_modules.extend( alaghi_tuples )
 
       # update next layer inputs
-      input_names = wires
-      n = len(wires)
+      input_names = sum_regs
+      n = len(sum_regs)
       layer_num += 1
 
 	# Write all the wires, registers and adders to the file
@@ -333,6 +335,8 @@ def write_alaghi_nadder_module( f, module_name, n ):
 # Returns a list of wires, registers, and adder modules through 
 # the return parameters: wires, sum_regs, and alaghi_tuples.
 def compute_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
+   wire_count = 0
+
    while( n > 1 ):
       # t, the largest power of 2 within n
       t = math.pow( 2, flogb2( n ) )
@@ -340,13 +344,14 @@ def compute_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
       # pair up inputs, generate an adder, and generate a wire and a reg for ouput
       i = 0
       while( i < t ):
-         wire_str = "sum_" + str(layer_num) + "_" + str(i/2)
+         wire_str = "sum_" + str(layer_num) + "_" + str(wire_count)
          wires.append(wire_str)
-         reg_str = "sumreg_" + str(layer_num) + "_" + str(i/2)
+         reg_str = "sumreg_" + str(layer_num) + "_" + str(wire_count)
          sum_regs.append(reg_str)
          alaghi_tup = (input_names[i], input_names[i+1], wire_str)
          alaghi_tuples.append( alaghi_tup )
 
+         wire_count += 1
          i = i + 2
 
       n = n - t

@@ -1,4 +1,3 @@
 -implement alaghi nadder and integrate Vincent's code into its testbenches
 -add option to use alaghi adders in matrix multiply (and dot product)
--how do I do modulo in Verilog :( how do I generate select streams..
 -make a stochastic dot product simulation module, one with SNGs and convertors

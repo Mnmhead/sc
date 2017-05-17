@@ -10,9 +10,11 @@ import os
 # which specifiy some module features.
 def generate( args ):
    # make shift register for dot_products adder step
-   shift = 2
+   shift = None
    if( args.alaghi ):
-      shift = int(clogb2(args.input_size)) # Ill have to figure out how much delay there will be for alaghi adder trees
+      shift = int(clogb2(args.input_size)) + 1
+   else:
+      shift = 2
 
    shift_name = "shift_" + str(shift) + "_register"
 
