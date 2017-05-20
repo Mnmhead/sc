@@ -42,8 +42,6 @@ def generate( args ):
       write_sng_module( f, SNG, 32, rng="LFSR" )
    """
 
-   return
-
 # Writes a counter module.
 # Parameters:
 #  f, file to write to
@@ -91,8 +89,6 @@ def write_counter_module( f, module_name, width, max_num=None, reverse=False ):
 
    write_line( f, "" )
    write_line( f, "endmodule // " + module_name )
- 
-   return
 
 # Writes an LFSR module.
 # Parameters:
@@ -177,8 +173,6 @@ def write_lfsr_module( f, module_name, data_len, max_num=0, zero_detect=True ):
    write_line( f, "" )
    write_line( f, "endmodule // " + module_name )
 
-   return
-
 # Writes a shift_n_register module. This module shifts a 1 bit value for n clock cycles.
 # Parameters:
 #  f, the file to write to
@@ -222,8 +216,6 @@ def write_shift_register_module( f, module_name, shift ):
    write_line( f, "assign data_out = internal_registers[DEPTH-1];", 1 )
    write_line( f, "endmodule // shift_register" )
 
-   return
-
 # Writes a digital to stochastic converter module.
 # Parameters:
 #  f, the file to write to
@@ -257,8 +249,6 @@ def write_sd_converter_module( f, module_name, precision ):
    write_line( f, "" )
    write_line( f, "endmodule // " + module_name )
 
-   return
-
 # Write a digital to stochastic converter module.
 # Parameters:
 #  f, the file to write to
@@ -279,8 +269,6 @@ def write_ds_converter_module( f, module_name, precision ):
    write_line( f, "assign out = (rng < in) ? 1 : 0;", 1 )
    write_line( f, "" )
    write_line( f, "endmodule // " + module_name )
-
-   return
 
 # Writes a stochastic number generator module.
 # Parameters:
@@ -332,8 +320,6 @@ def write_sng_module( f, module_name, precision, rng="LFSR" ):
    write_line( f, "" )
    write_line( f, "endmodule // " + module_name )
 
-   return
-
 # Writes the header comment for the shift_register module to file, f.
 def write_header_shiftreg( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
@@ -343,8 +329,6 @@ def write_header_shiftreg( f ):
    write_line( f, "// Shift depth is in the title of the module." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
-
-   return
 
 # Writes the header comment for the counter module to file, f.
 def write_header_counter( f ):
@@ -356,8 +340,6 @@ def write_header_counter( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
 
-   return
-
 def write_header_lfsr( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )
@@ -367,8 +349,6 @@ def write_header_lfsr( f ):
    write_line( f, "// /scsynth/blob/master/src/VerilogLFSRGenerator.m" )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
-
-   return
 
 def write_header_sd_converter( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
@@ -386,8 +366,6 @@ def write_header_sd_converter( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
 
-   return
-
 def write_header_ds_converter( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )
@@ -401,8 +379,6 @@ def write_header_ds_converter( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
 
-   return
-
 def write_header_sng( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )
@@ -414,5 +390,3 @@ def write_header_sng( f ):
    write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
-
-   return
