@@ -1,5 +1,5 @@
 # Copyright (c) Gyorgy Wyatt Muntean 2017
-# This file contains functions to generata the core modules for
+# This file contains functions to generate the core modules for
 # stochastic matrix multiply. 
 
 from common import *
@@ -17,20 +17,22 @@ def generate( args ):
    mat_mult_name = MATRIX
    dp_name = DOT_PROD
    nadder_name = NADDER
+   alaghi_nadder_name = ALAGHI_NADDER
+
+   # Write the supporting IP, the dot_product and nadder.
+   if ( args.alaghi ):
+      with open( os.path.join( args.dest_dir, alaghi_nadder_name + ".v" ), 'w' ) as f:
+         write_alaghi_nadder_module( f, alaghi_nadder_name, N ) 
+   else:
+      with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
+         write_nadder_module( f, nadder_name, N )
+
+   with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
+      write_dot_prod_module( f, dp_name, N, args.rep, args.alaghi )
 
    # write the matrix multiply module
    with open( os.path.join( args.dest_dir, mat_mult_name + ".v" ), 'w' ) as f: 
       write_matrix_module( f, mat_mult_name, M, N, O )
-
-   # write the dot_product module
-   with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
-      write_dot_prod_module( f, args.rep, dp_name, N )
-
-   # write the nadder module
-   with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
-      write_nadder_module( f, nadder_name, N )
-
-   return
 
 # Writes a stochatsic matrix multiply module to an output file, f.
 # Parameters:
@@ -38,7 +40,7 @@ def generate( args ):
 #  batch, an int specifying the batch size (in a matrix mult MxN * NxO, M is batch size)
 #  inpt, an int specifying the input feature size (N)
 #  outpt, an int specifying the output feature size (O)
-def write_matrix_module( f, module_name, batch, inpt, outpt ):
+def write_matrix_module( f, module_name, batch, inpt, outpt, alaghi = False ):
    # compute the log base 2 of the input, 
    # this is how many select streams are required
    select_width = clogb2( inpt )
@@ -51,7 +53,8 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
    write_line( f, "rst,", 1 )
    write_line( f, "inputStreams,", 1 )
    write_line( f, "weightStreams,", 1 )
-   write_line( f, "sel,", 1 )
+   if not alaghi:
+      write_line( f, "sel,", 1 )
    write_line( f, "outputStreams,", 1 )
    write_line( f, "outputWriteEn", 1 )
    write_line( f, ");" )
@@ -59,14 +62,16 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
    write_line( f, "parameter BATCH_SIZE = " + str(batch) + "; // M", 1 )
    write_line( f, "parameter INPUT_FEATURES = " + str(inpt) + "; // N", 1 )
    write_line( f, "parameter OUTPUT_FEATURES = " + str(outpt) + "; // O", 1 )
-   write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
+   if not alaghi:
+      write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// inputs and outputs", 1 )
    write_line( f, "input                                      clk;", 1 )
    write_line( f, "input                                      rst;", 1 )
    write_line( f, "input [BATCH_SIZE*INPUT_FEATURES-1:0]      inputStreams;", 1 )
    write_line( f, "input [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams;", 1 )
-   write_line( f, "input [SELECT_WIDTH-1:0]                 sel;", 1 )
+   if not alaghi:
+      write_line( f, "input [SELECT_WIDTH-1:0]                 sel;", 1 )
    write_line( f, "output [BATCH_SIZE*OUTPUT_FEATURES-1:0]    outputStreams;", 1 )
    write_line( f, "output                                     outputWriteEn;", 1 )
    write_line( f, "" )
@@ -80,7 +85,8 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
    write_line( f, "                .rst(rst),", 4 )
    write_line( f, "                .data(inputStreams[i*INPUT_FEATURES +: INPUT_FEATURES]),", 4 )
    write_line( f, "                .weights(weightStreams[j*INPUT_FEATURES +: INPUT_FEATURES]),", 4 )
-   write_line( f, "                .sel(sel),", 4 )
+   if not alaghi:
+      write_line( f, "                .sel(sel),", 4 )
    write_line( f, "                .result(outputStreams[(i*OUTPUT_FEATURES)+j]),", 4 )
    write_line( f, "                .valid(valids[(i*OUTPUT_FEATURES)+j]));", 4 )
    write_line( f, "end", 3 )
@@ -90,9 +96,7 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
    write_line( f, "// later we will incorporate this signal", 1 )
    write_line( f, "assign outputWriteEn = (valids[0] == 1'b1);", 1 )
    write_line( f, "" )
-   write_line( f, "endmodule // sc_matrix_mult" )
-
-   return
+   write_line( f, "endmodule // " + module_name )
 
 # Writes a stochastic dot_product module to the file, f.
 # Parameters:
@@ -100,7 +104,7 @@ def write_matrix_module( f, module_name, batch, inpt, outpt ):
 #  rep, a string for the stochastic represntation type (uni or bi)
 #  module_name, a string for the module name
 #  length, an int which specifies the length of the input vectors to the module
-def write_dot_prod_module( f, rep, module_name, length ):
+def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False ):
    # compute number of select streams
    select_width = clogb2( length )
    
@@ -112,20 +116,23 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "rst,", 1 )
    write_line( f, "data,", 1 )
    write_line( f, "weights,", 1 )
-   write_line( f, "sel,", 1 )
+   if not alaghi:
+      write_line( f, "sel,", 1 )
    write_line( f, "result,", 1 )
    write_line( f, "valid", 1 )
    write_line( f, ");" )
    write_line( f, "" )
    write_line( f, "parameter LENGTH = " + str(length) + ";", 1 )
-   write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
+   if not alaghi:
+      write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// inputs and outputs", 1 )
    write_line( f, "input                    clk;", 1 )
    write_line( f, "input                    rst;", 1 )
    write_line( f, "input [LENGTH-1:0]       data;", 1 )
    write_line( f, "input [LENGTH-1:0]       weights;", 1 )
-   write_line( f, "input [SELECT_WIDTH-1:0] sel;", 1 )
+   if not alaghi:
+      write_line( f, "input [SELECT_WIDTH-1:0] sel;", 1 )
    write_line( f, "output                   result;", 1 )
    write_line( f, "output                   valid;", 1 )
    write_line( f, "" ) 
@@ -134,12 +141,10 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "wire [LENGTH-1:0] mult_out;", 1 )
    write_line( f, "generate", 1 )
    write_line( f, "for( i = 0; i < LENGTH; i = i + 1) begin : mult", 2 )
-
    if rep == 'uni':
       write_line( f, "sc_multiplier MULT(.x(data[i]), .y(weights[i]), .res(mult_out[i]));", 3 )
    if rep == 'bi':
       write_line( f, "sc_multiplier_bi MULT(.x(data[i]), .y(weights[i]), .z(mult_out[i]));", 3 )
-
    write_line( f, "end", 2 )
    write_line( f, "endgenerate", 1 )
    write_line( f, "" )
@@ -153,19 +158,23 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
-   write_line( f, "// shift the slect streams by 1, this is to wait for the multiplication to complete", 1 )
-   write_line( f, "reg [SELECT_WIDTH-1:0] select;", 1 )
-   write_line( f, "always @(posedge clk) begin", 1 )
-   write_line( f, "if( rst == 1'b1 ) begin", 2 )
-   write_line( f, "select <= 0;", 3 )
-   write_line( f, "end else begin", 2 )
-   write_line( f, "select <= sel;", 3 )
-   write_line( f, "end", 2 )
-   write_line( f, "end", 1 )
-   write_line( f, "" )
+   if not alaghi:
+      write_line( f, "// shift the slect streams by 1 cycle, must wait for multiplication to complete", 1 )
+      write_line( f, "reg [SELECT_WIDTH-1:0] select;", 1 )
+      write_line( f, "always @(posedge clk) begin", 1 )
+      write_line( f, "if( rst == 1'b1 ) begin", 2 )
+      write_line( f, "select <= 0;", 3 )
+      write_line( f, "end else begin", 2 )
+      write_line( f, "select <= sel;", 3 )
+      write_line( f, "end", 2 )
+      write_line( f, "end", 1 )
+      write_line( f, "" )
    write_line( f, "// add all element-wise products", 1 )
    write_line( f, "wire adder_res;", 1 )
-   write_line( f, "sc_nadder NADDER(.x(product_streams), .sel(select), .out(adder_res));", 1 )
+   if alaghi:
+      write_line( f, "alaghi_nadder NADDER(.clk(clk), .rst(rst), .inpts(product_streams), .out(adder_res));", 1 )
+   else:
+      write_line( f, "sc_nadder NADDER(.x(product_streams), .sel(select), .out(adder_res));", 1 )
    write_line( f, "" )
    write_line( f, "// direct adder output to register and then to final output", 1 )
    write_line( f, "reg i_result;", 1 )
@@ -180,15 +189,23 @@ def write_dot_prod_module( f, rep, module_name, length ):
    write_line( f, "assign result = i_result;", 1 )
    write_line( f, "" )
    write_line( f, "// Use shift register to indicate when module output is valid", 1 )
-   # Ill have to change the shift register type (after I implement the alaghi adder stuff)
-   # TODO
-   write_line( f, "shift_2_register SHIFT2(.clk(clk), .rst(rst), .data_in(1'b1), .data_out(valid));", 1 )
+
+   delay = None
+   if alaghi:
+      # delay for alaghi tree is one cycle for every level, plus one for
+      # final output register.
+      delay = int(clogb2( length )) + 1
+   else:
+      # two clock cycle delay for standard dot product
+      # 1 cycle for multiplication, 1 for addition (single mux)
+      delay = 2
+
+   write_line( f, "shift_" + str(delay) + "_register SHIFT" + str(delay) \
+                  + "(.clk(clk), .rst(rst), .data_in(1'b1), .data_out(valid));", 1 )
    write_line( f, "" )
-   write_line( f, "endmodule // sc_dot_product" )
+   write_line( f, "endmodule // " + module_name )
 
-   return
-
-# Writes a sc_nadder module. This module adds n inputs in the stochastic domain.
+# Writes a sc_nadder module.
 # Parameters:
 #  f, the file to write to
 #  module_name, a string for the module name
@@ -215,9 +232,141 @@ def write_nadder_module( f, module_name, n ):
    write_line( f, "" )
    write_line( f, "assign out = x[sel];", 1 )
    write_line( f, "" )
-   write_line( f, "endmodule // sc_nadder" )
+   write_line( f, "endmodule // " + module_name )
 
-   return
+# Writes an alaghi n-input adder module. 
+# Parameters:
+# f, the file to write to
+# module_name, a string for the module name
+# n, an integer, specifies the number of inputs
+def write_alaghi_nadder_module( f, module_name, n ):
+   # write the module header
+   write_header_alaghi_nadder( f )
+
+   write_line( f, "module " + module_name + "(" )
+   write_line( f, "clk,", 1 )
+   write_line( f, "rst,", 1 )
+   write_line( f, "inpts,", 1 )
+   write_line( f, "out", 1 )
+   write_line( f, ");" )
+   write_line( f, "" )
+   write_line( f, "input clk;", 1 )
+   write_line( f, "input rst;", 1 )
+   write_line( f, "input [" + str(n-1) + ":0] inpts;", 1 )
+   write_line( f, "output out;", 1 )
+   write_line( f, "" )
+
+   # Arrays are for storing the wires, registers, and alaghi adder module
+   # information needed. The contents of the arrays are used to write the verilog
+   # module after determining the structure of the adder tree.
+   wire_strs = []
+   sum_reg_strs = []
+   alaghi_modules = []
+
+   # initialize the first layer of input names
+   input_names = []
+   for i in range(n):
+      input_names.append( "inpts[" + str(i) + "]" )
+
+   # call the helper routine and generate each layer of alaghi adders
+   layer_num = 1
+   while( n >= 2 ):
+      wires = []
+      sum_regs = []
+      alaghi_tuples = []
+      compute_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples )
+
+      # append generated wires, registers, adders to the global list
+      wire_strs.extend( wires )
+      sum_reg_strs.extend( sum_regs )
+      alaghi_modules.extend( alaghi_tuples )
+
+      # update next layer inputs
+      input_names = sum_regs
+      n = len(sum_regs)
+      layer_num += 1
+
+	# Write all the wires, registers and adders to the file
+   write_line( f, "// Wires for this tree. The first number specifies the level of the tree.", 1 )
+   write_line( f, "// The second number is the 'name' (or index) of the wire within the level it resides.", 1 )
+
+   # write all wire declarations
+   for i in range(len(wire_strs)):
+      write_line( f, "wire " + wire_strs[i] + ";", 1 )
+
+   write_line( f, "" )
+   write_line( f, "// Registers for each level of output.", 1 )
+
+   # write all register declarations
+   for i in range(len(sum_reg_strs)):
+      write_line( f, "reg " + sum_reg_strs[i] + ";", 1 )
+
+   write_line( f, "" )
+   write_line( f, "// Write register assignments", 1 )
+   write_line( f, "always @(posedge clk) begin", 1 )
+
+   # write wire->register assignments
+   for i in range(len(wire_strs)):
+      write_line( f, sum_reg_strs[i] + " <= " + wire_strs[i] + ";", 2 )
+
+   write_line( f, "end", 1 )
+   write_line( f, "" )
+
+   # write adder modules
+   for i in range(len(alaghi_modules)):
+      (in1, in2, out) = alaghi_modules[i]
+      write_line( f, "alaghi_adder ADDER" + str(i) + "(.clk(clk), .rst(rst), " \
+                     + ".x(" + in1 + "), .y(" + in2 + "), " \
+                     + ".out(" + out + "));", 1 )
+
+   last_out = len(sum_reg_strs) - 1
+   write_line( f, "" )
+   write_line( f, "assign out = " + sum_reg_strs[last_out] + ";", 1 )
+   write_line( f, "" )
+   write_line( f, "endmodule // " + module_name )
+
+# Helper function to compute the wire, registers, and adders for a layer of
+# the adder tree.
+#
+# n, an int for the number of inputs to this layer
+# layer_num, an int specifying the layer number (used for naming)
+# input_names, the verilog names of the inputs to this layer
+#
+# Returns a list of wires, registers, and adder modules through 
+# the return parameters: wires, sum_regs, and alaghi_tuples.
+def compute_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
+   wire_count = 0
+
+   while( n > 1 ):
+      # t, the largest power of 2 within n
+      t = math.pow( 2, flogb2( n ) )
+
+      # pair up inputs, generate an adder, and generate a wire and a reg for ouput
+      i = 0
+      while( i < t ):
+         wire_str = "sum_" + str(layer_num) + "_" + str(wire_count)
+         wires.append(wire_str)
+         reg_str = "sumreg_" + str(layer_num) + "_" + str(wire_count)
+         sum_regs.append(reg_str)
+         alaghi_tup = (input_names[i], input_names[i+1], wire_str)
+         alaghi_tuples.append( alaghi_tup )
+
+         wire_count += 1
+         i = i + 2
+
+      n = n - t
+
+   # if there is a left-over input, pair it up with a constant 0 input
+   # this maintains the scaling factor
+   if( n == 1 ):
+      last_index = len(input_names) - 1
+
+      wire_str = "sum_" + str(layer_num) + "_0const"
+      wires.append(wire_str)
+      reg_str = "sumreg_" + str(layer_num) + "_0const"
+      sum_regs.append(reg_str)
+      alaghi_tup = (input_names[last_index], str(0), wire_str)
+      alaghi_tuples.append( alaghi_tup )
 
 # Writes the header comment for the sc_matrix_mult module.
 # This comment nincludes a timestamp of when the file was genertaed, in GMT.
@@ -225,18 +374,13 @@ def write_header_mat_mult( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )
    write_line( f, "//" )
-   write_line( f, "// Description: This moudle represents matrix multiply in the stochastic domain." )
-   write_line( f, "// ihe inputs to this module are two flattened matrices A and B," )
+   write_line( f, "// Description: This module represents matrix multiply in the stochastic domain." )
+   write_line( f, "// The inputs to this module are two flattened matrices A and B," )
    write_line( f, "// where A has dimensions MxN and B has dimensions NxO." )
-   write_line( f, "// The input matrix B however should be the flattened form of the transpose of B." )
+   write_line( f, "// The input matrix B is actually the transpose of B (still flattened)" )
    write_line( f, "// This results in a matrix C with dimensions MxO." )
-   write_line( f, "//" )
-   write_line( f, "// For more information on stochastic computing:" )
-   write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
-   
-   return
 
 # Writes the header comment for the sc_dot_product module.
 # The file written to is the parameter, f.
@@ -244,16 +388,10 @@ def write_header_dot_prod( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )
    write_line( f, "//" )
-   write_line( f, "// Description: The circuit represents a dot product of two vectors in the stochastic domain." )
-   write_line( f, "// For more information on stochastic computing:" )
-   write_line( f, "// https://en.wikipedia.org/wiki/Stochastic_computing" )
-   write_line( f, "//" )
-   write_line( f, "// Requirement: The inputs, 'sel', must be stochastic bitstreams where probability of" )
-   write_line( f, "// a 1 or 0 is equally 0.5." )
+   write_line( f, "// Description: The circuit represents a dot product of two vectors in the" )
+   write_line( f, "// stochastic domain." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
-   
-   return
 
 # Writes the header comment for the sc_nadder module.
 # The file written to is the parameter, f.
@@ -261,14 +399,18 @@ def write_header_nadder( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )
    write_line( f, "//" )
-   write_line( f, "// Description: The circuit represents a multi-input adder in the stochastic domain." )
-   write_line( f, "// For more information on stochastic computing: https://en.wikipedia.org/wiki/Stochastic_computing" )
-   write_line( f, "//" )
-   write_line( f, "// Requirements:" )
-   write_line( f, "// The input 'sel' must be the concatenation of log2(INPUT_STREAMS) number of" )
-   write_line( f, "// un-correlated stochastic streams (each with value=0.5)." )
+   write_line( f, "// Description: The circuit represents a multi-input adder in the stochastic" )
+   write_line( f, "// domain." )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
 
-   return
+# Writes the header comment for the alaghi_nadder module.
+# The file written to is the parameter, f.
+def write_header_alaghi_nadder( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// Description: The circuit represents a tree of alaghi adders." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
 

@@ -8,6 +8,7 @@ from time import gmtime, strftime
 MATRIX = "sc_matrix_mult"
 DOT_PROD = "sc_dot_product"
 NADDER = "sc_nadder"
+ALAGHI_NADDER = "alaghi_nadder"
 COUNTER = "counter"
 REVERSECOUNTER = "reverse_counter"
 LFSR = "lfsr"

@@ -10,7 +10,6 @@ import sc_gen
 import srcs_gen
 import tb_gen
 
-REP_OPTIONS = ["uni", "bi"]  # types of supported stochastic representations
 
 # Command line interface specification
 # 1. -dst specifies the location of the generated files
@@ -23,7 +22,7 @@ def cli():
    )
    parser.add_argument(
       '-dst', dest='dest_dir', action='store', type=str, required=False,
-      default=".", help='Destination directory'
+      default="gen", help='Destination directory'
    )
    """
    parser.add_argument(
@@ -54,7 +53,7 @@ def cli():
    )
    """
    parser.add_argument(
-      '-p', dest='rep', action='store', type=str, required=False,
+      '-rep', dest='rep', action='store', type=str, required=False,
       default='uni', help='Type of stochastic representation, options are Uni or Bi'
    )
    parser.add_argument(
@@ -63,11 +62,17 @@ def cli():
    )
    args = parser.parse_args()
    args.rep = str.lower( args.rep )
+   rep_options = ["uni", "bi"]  # types of supported stochastic representations
 
    # Argument validation
-   if ( args.rep not in REP_OPTIONS ):
+   if ( args.rep not in rep_options ):
       print( "Usage: -p [uni|bi]" )
       exit()
+   if ( args.rep is "bi" ):
+      raise NotImplementedError, "[Error] Bipolar representation is not fully supported"
+   if ( args.dest_dir is "gen" ):
+      if ( not os.path.exists( "gen" ) ):
+         os.makedirs( "gen" )
    if ( not os.path.isdir( args.dest_dir ) ):
       print( "ERROR: dst={} is not a valid path".format( args.dest_dir ) )
       exit()
@@ -80,9 +85,11 @@ if __name__ == '__main__':
    args = cli()
    print( "Generating Basic Modules..." )
    srcs_gen.generate( args )
+   print( "done!" )
    print( "Generating Modules..." )
    sc_gen.generate( args )
    print( "done!" )
    print( "Generating Testbenches..." )
    tb_gen.generate( args )
    print( "done!" )
+   
