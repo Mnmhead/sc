@@ -2,7 +2,9 @@
 # This file contains functions to generate testbenches for the modules
 # produced by the top-level script, generate.py.
 
+import numpy as np
 from common import *
+from pysc.linear_algebra.sc_dot_product import *
 import os
 import random
 
@@ -535,6 +537,45 @@ def gen_dp_data( data_dir, length, rep ):
 
    return
 
+# Parameters:
+#  data_dir, the directory to write the 'mif' data files
+#  dimension, an int, the dimension of the vectors
+#  length, the length of the input streams (essentially the length of the test)
+#  rep, a string, 'uni' or 'bi' specifying the stochastic representation
+#  alaghi, a boolean, specifies whether alaghi adders are used in the dot_product
+def gen_dp_data2( data_dir, dimension, length, rep='uni', alaghi=False ):
+   # randomly egenrate some data and weight vectors
+   data = np.random.randint( length, size = dimension ) 
+   weight = np.random.randint( length, size = dimension )
+
+   rng0 = lfsr_sequence( length, normalize = False )
+   rng1 = lfsr_sequence( length, normalize = False ) 
+
+   datas = np.empty( (dimension, length), dtype = bool )
+   weights = np.empty( (dimension, length), dtype = bool )
+
+   for d in range(dimension):
+      datas[d, :] = rng0 < data[d]
+      weights[d, : ] = rng1 < weight[d]
+
+   # Write the data and weight vectors out to 'mif' files
+   # Open and write data to files 
+   with open( os.path.join( data_dir, _DP_DATA_FN ), 'w' ) as f:
+      for stream in data_streams:
+         s_str = stream_to_str( stream )
+         f.write( s_str + "\n" )
+
+   with open( os.path.join( data_dir, _DP_WEIGHT_FN ), 'w' ) as f:
+      for stream in weight_streams:
+         s_str = stream_to_str( stream f.write( s_str + "\n" )
+         f.write( s_str + "\n" )
+
+
+    
+
+   print( datas )
+
+gen_dp_data2( "x", 8, 16 )
 
 #--------Helper functions----------#
 # Computes the stochastic dot product of the two vectors, data_vec and weight_vec.

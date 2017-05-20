@@ -5,43 +5,43 @@
 // For more information on stochastic computing: https://en.wikipedia.org/wiki/Stochastic_computing
 //
 // Requirements:
-// The input 'sel' must be the concatenation of clog2(LENGTH) number of un-correlated 
+// The input 'sel' must be the concatenation of clog2(DIMENSION) number of un-correlated 
 // stochastic streams (each with value=0.5).
 //////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns / 10ps
 
 module sc_dot_product_tb();
-   parameter LENGTH =        4;
+   parameter DIMENSION =        4;
    parameter SELECT_WIDTH =  2;
    parameter DATA_VECTOR =   "data_vectors.mif";
    parameter WEIGHT_VECTOR = "weight_vectors.mif";
    parameter SELECT_STREAM = "select_streams.mif";
    parameter DP_RESULT =     "dp_results.mif";
-   parameter TEST_SIZE =     100;
+   parameter LENGTH =     100;
 
    // module inputs and outputs
    reg                     clk;
    reg                     rst;
-   wire [LENGTH-1:0]       data;
-   wire [LENGTH-1:0]       weights;  
+   wire [DIMENSION-1:0]       data;
+   wire [DIMENSION-1:0]       weights;  
    wire [SELECT_WIDTH-1:0] sel;
    wire                    result; 
    wire                    valid;
 
    // read input data and expected output data
-   reg [LENGTH-1:0] test_data [TEST_SIZE-1:0];
-   reg [LENGTH-1:0] test_weights [TEST_SIZE-1:0];
-   reg [SELECT_WIDTH-1:0] test_sel [TEST_SIZE-1:0]; 
-   reg expected_result [TEST_SIZE-1:0];
+   reg [DIMENSION-1:0] test_data [LENGTH-1:0];
+   reg [DIMENSION-1:0] test_weights [LENGTH-1:0];
+   reg [SELECT_WIDTH-1:0] test_sel [LENGTH-1:0]; 
+   reg expected_result [LENGTH-1:0];
    initial begin
-      $readmemb(DATA_VECTOR, test_data, 0, TEST_SIZE-1);
-      $readmemb(WEIGHT_VECTOR, test_weights, 0, TEST_SIZE-1);
-      $readmemb(SELECT_STREAM, test_sel, 0, TEST_SIZE-1);
-      $readmemb(DP_RESULT, expected_result, 0, TEST_SIZE-1);
+      $readmemb(DATA_VECTOR, test_data, 0, LENGTH-1);
+      $readmemb(WEIGHT_VECTOR, test_weights, 0, LENGTH-1);
+      $readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);
+      $readmemb(DP_RESULT, expected_result, 0, LENGTH-1);
    end
 
    // Test input assignment logic
-   reg [6:0] test_index; // clogb2(TEST_SIZE)
+   reg [6:0] test_index; // clogb2(LENGTH)
    initial test_index = 0;
    always @(posedge clk) begin
       if( rst == 1'b1 ) begin
@@ -99,7 +99,7 @@ module sc_dot_product_tb();
 
       // start sim
       rst = 0;
-      #(TEST_SIZE*CLOCK_PERIOD + 100) // add 100 extra cycles for initial ouput delay
+      #(LENGTH*CLOCK_PERIOD + 100) // add 100 extra cycles for initial ouput delay
 
       // error summary
       $display("Simulation complete.");
