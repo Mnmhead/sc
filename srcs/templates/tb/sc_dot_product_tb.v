@@ -11,19 +11,19 @@
 `timescale 1ns / 10ps
 
 module sc_dot_product_tb();
-   parameter DIMENSION =        4;
+   parameter DIMENSION =     4;
    parameter SELECT_WIDTH =  2;
    parameter DATA_VECTOR =   "data_vectors.mif";
    parameter WEIGHT_VECTOR = "weight_vectors.mif";
    parameter SELECT_STREAM = "select_streams.mif";
    parameter DP_RESULT =     "dp_results.mif";
-   parameter LENGTH =     100;
+   parameter LENGTH =        100;
 
    // module inputs and outputs
    reg                     clk;
    reg                     rst;
-   wire [DIMENSION-1:0]       data;
-   wire [DIMENSION-1:0]       weights;  
+   wire [DIMENSION-1:0]    data;
+   wire [DIMENSION-1:0]    weights;  
    wire [SELECT_WIDTH-1:0] sel;
    wire                    result; 
    wire                    valid;

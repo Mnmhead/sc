@@ -59,7 +59,7 @@ def generate( args ):
    # write the dot product testbench
    gen_dp_data( data, N, _DP_TEST_SIZE, rep=args.rep, alaghi=args.alaghi )
    with open( os.path.join( tb, dp_tb_name + ".v" ), 'w' ) as f:
-      write_dp_tb( f, dp_tb_name, dp_dut_name, args.rep, N )
+      write_dp_tb( f, dp_tb_name, dp_dut_name, N, rep=args.rep )
 
    if args.alaghi:
       alaghi_tb_name = ALAGHI_NADDER + "_tb"
@@ -100,7 +100,7 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "parameter WEIGHT_MATRICES = \"" + _MM_WEIGHT_FN + "\";", 1 )
    write_line( f, "parameter SELECT_STREAM =   \"" + _MM_SEL_FN + "\";", 1 )
    write_line( f, "parameter MM_RESULT =       \"" + _MM_RES_FN + "\";", 1 )
-   write_line( f, "parameter TEST_SIZE =       " + str(_MM_TEST_SIZE) + ";", 1 )
+   write_line( f, "parameter LENGTH =       " + str(_MM_TEST_SIZE) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// module inputs and outputs", 1 )
    write_line( f, "reg clk;", 1 )
@@ -112,15 +112,15 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "wire                                     outputWriteEn;", 1 )
    write_line( f, "" )
    write_line( f, "// read input data and expected output data", 1 )
-   write_line( f, "reg [BATCH_SIZE*INPUT_FEATURES-1:0] test_input [TEST_SIZE-1:0];", 1 )
-   write_line( f, "reg [OUTPUT_FEATURES*INPUT_FEATURES-1:0] test_weight [TEST_SIZE-1:0];", 1 )
-   write_line( f, "reg [SELECT_WIDTH-1:0]                 test_sel [TEST_SIZE-1:0];", 1 )
-   write_line( f, "reg [BATCH_SIZE*OUTPUT_FEATURES-1:0] expected_results [TEST_SIZE-1:0];", 1 )
+   write_line( f, "reg [BATCH_SIZE*INPUT_FEATURES-1:0] test_input [LENGTH-1:0];", 1 )
+   write_line( f, "reg [OUTPUT_FEATURES*INPUT_FEATURES-1:0] test_weight [LENGTH-1:0];", 1 )
+   write_line( f, "reg [SELECT_WIDTH-1:0]                 test_sel [LENGTH-1:0];", 1 )
+   write_line( f, "reg [BATCH_SIZE*OUTPUT_FEATURES-1:0] expected_results [LENGTH-1:0];", 1 )
    write_line( f, "initial begin", 1 )
-   write_line( f, "$readmemb(INPUT_MATRICES, test_input, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(WEIGHT_MATRICES, test_weight, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(MM_RESULT, expected_results, 0, TEST_SIZE-1);", 2 )
+   write_line( f, "$readmemb(INPUT_MATRICES, test_input, 0, LENGTH-1);", 2 )
+   write_line( f, "$readmemb(WEIGHT_MATRICES, test_weight, 0, LENGTH-1);", 2 )
+   write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);", 2 )
+   write_line( f, "$readmemb(MM_RESULT, expected_results, 0, LENGTH-1);", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
    write_line( f, "// Test input assignment logic", 1 )
@@ -184,7 +184,7 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "" )
    write_line( f, "// start sim", 2 )
    write_line( f, "rst = 0;", 2 )
-   write_line( f, "#(TEST_SIZE*CLOCK_PERIOD + 100)  // give 100 clock cycles for initial output delay", 2 )
+   write_line( f, "#(LENGTH*CLOCK_PERIOD + 100)  // give 100 clock cycles for initial output delay", 2 )
    write_line( f, "" )
    write_line( f, "// error summary", 2 )
    write_line( f, "$display(\"Simulation complete.\");", 2 )
@@ -207,43 +207,43 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
 #  dut_name, a string, the name of the module to test (device under test)
 #  rep, a string specifying the stochastic representation (either uni or bi)
 #  length, an integer, the length of the input vectors
-def write_dp_tb( f, module_name, dut_name, rep, length ):
+def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
    # write the header comment
    write_dp_tb_header( f )
 
    # compute number of select streams needed 
-   select_width = clogb2( length )
+   select_width = clogb2( dimension )
 
    write_line( f, "`timescale 1ns / 10ps" )
    write_line( f, "" )   
    write_line( f, "module " + module_name + "();" )
-   write_line( f, "parameter LENGTH =        " + str(length) + ";", 1 )
+   write_line( f, "parameter DIMENSION =     " + str(dimension) + ";", 1 )
    write_line( f, "parameter SELECT_WIDTH =  " + str(select_width) + ";", 1 )
    write_line( f, "parameter DATA_VECTOR =   \"" + _DP_DATA_FN + "\";", 1 )
    write_line( f, "parameter WEIGHT_VECTOR = \"" + _DP_WEIGHT_FN + "\";", 1 )
    write_line( f, "parameter SELECT_STREAM = \"" + _DP_SELECT_FN + "\";", 1 )
    write_line( f, "parameter DP_RESULT =     \"" + _DP_RES_FN + "\";", 1 )
-   write_line( f, "parameter TEST_SIZE =     " + str(_DP_TEST_SIZE) + ";", 1 )
+   write_line( f, "parameter LENGTH =        " + str(_DP_TEST_SIZE) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// module inputs and outputs", 1 )
    write_line( f, "reg                     clk;", 1 )
    write_line( f, "reg                     rst;", 1 )
-   write_line( f, "wire [LENGTH-1:0]       data;", 1 )
-   write_line( f, "wire [LENGTH-1:0]       weights;", 1 )
+   write_line( f, "wire [DIMENSION-1:0]    data;", 1 )
+   write_line( f, "wire [DIMENSION-1:0]    weights;", 1 )
    write_line( f, "wire [SELECT_WIDTH-1:0] sel;", 1 )
    write_line( f, "wire                    result;", 1 )
    write_line( f, "wire                    valid;", 1 )
    write_line( f, "" )
    write_line( f, "// read input data and expected output data", 1 )
-   write_line( f, "reg [LENGTH-1:0] test_data [TEST_SIZE-1:0];  // i think this only needs to be clogb2 of TEST_SIZE", 1 )
-   write_line( f, "reg [LENGTH-1:0] test_weights [TEST_SIZE-1:0];", 1 )
-   write_line( f, "reg [SELECT_WIDTH-1:0] test_sel [TEST_SIZE-1:0];", 1 )
-   write_line( f, "reg expected_result [TEST_SIZE-1:0];", 1 )
+   write_line( f, "reg [DIMENSION-1:0] test_data [LENGTH-1:0];", 1 )
+   write_line( f, "reg [DIMENSION-1:0] test_weights [LENGTH-1:0];", 1 )
+   write_line( f, "reg [SELECT_WIDTH-1:0] test_sel [LENGTH-1:0];", 1 )
+   write_line( f, "reg expected_result [LENGTH-1:0];", 1 )
    write_line( f, "initial begin", 1 )
-   write_line( f, "$readmemb(DATA_VECTOR, test_data, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(WEIGHT_VECTOR, test_weights, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, TEST_SIZE-1);", 2 )
-   write_line( f, "$readmemb(DP_RESULT, expected_result, 0, TEST_SIZE-1);", 2 )
+   write_line( f, "$readmemb(DATA_VECTOR, test_data, 0, LENGTH-1);", 2 )
+   write_line( f, "$readmemb(WEIGHT_VECTOR, test_weights, 0, LENGTH-1);", 2 )
+   write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);", 2 )
+   write_line( f, "$readmemb(DP_RESULT, expected_result, 0, LENGTH-1);", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
    write_line( f, "// Test input assignment logic", 1 )
@@ -273,7 +273,7 @@ def write_dp_tb( f, module_name, dut_name, rep, length ):
    write_line( f, "result_index <= 0;", 3 )
    write_line( f, "end else if( valid == 1'b1 ) begin", 2 )
    write_line( f, "if( result != expected_result[result_index] ) begin", 3 )
-   write_line( f, "$display(\"Error. Expected result %d foes not match actual %d. On result index: %d\", ", 4 )
+   write_line( f, "$display(\"Error. Expected result %d does not match actual %d. On result index: %d\", ", 4 )
    write_line( f, "expected_result[result_index], result, result_index);", 5 )
    write_line( f, "errors = errors + 1;", 4 )
    write_line( f, "end", 3 )
@@ -308,7 +308,7 @@ def write_dp_tb( f, module_name, dut_name, rep, length ):
    write_line( f, "" )
    write_line( f, "// start sim", 2 )
    write_line( f, "rst = 0;", 2 )
-   write_line( f, "#(TEST_SIZE*CLOCK_PERIOD + 100) // add 100 extra cycles for initial ouput delay", 2 )
+   write_line( f, "#(LENGTH*CLOCK_PERIOD + 100) // add 100 extra cycles for initial ouput delay", 2 )
    write_line( f, "" )
    write_line( f, "// error summary", 2 )
    write_line( f, "$display(\"Simulation complete.\");", 2 )
@@ -620,15 +620,18 @@ def gen_dp_data( data_dir, dimension, length, rep='uni', alaghi=False ):
       datas[d, :] = rng0 < data[d]
       weights[d, : ] = rng1 < weight[d]
 
+   #print( datas[:,10] )
+   #print( weights[:,10] )
+
    # Write the data and weight vectors out to 'mif' files
    # Open and write data to files 
    with open( os.path.join( data_dir, _DP_DATA_FN ), 'w' ) as f:
-      for stream in datas:
-         s_str = stream_to_str( stream )
+      for stream in range(length):
+         s_str = stream_to_str( datas[:,stream] )
          f.write( s_str + "\n" )
    with open( os.path.join( data_dir, _DP_WEIGHT_FN ), 'w' ) as f:
-      for stream in weights:
-         s_str = stream_to_str( stream )
+      for stream in range(length):
+         s_str = stream_to_str( weights[:,stream] )
          f.write( s_str + "\n" )
 
    if not alaghi:
@@ -688,14 +691,22 @@ def gen_alaghi_data( data_dir, n, length ):
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.
-def stream_to_str( stream ):
-   s_str = ""
-   for bit in stream:
-      if bit:
-         s_str += "1"
-      else:
-         s_str += "0"
-        
+def stream_to_str( stream, reverse = False ):
+   if reverse:
+      s_str = ""
+      for bit in reversed(range(len(stream))):
+         if bit:
+            s_str += "1"
+         else:
+            s_str += "0"
+   else:
+      s_str = ""
+      for bit in stream:
+         if bit:
+            s_str += "1"
+         else:
+            s_str += "0"
+           
    return s_str
 
 # Converts a number, num, to a binary string of precision n.
@@ -709,10 +720,14 @@ def int_to_n_length_binary( num, n ):
 # Writes a flattened form of the matrix (elements are streams of 1s and 0s)
 # to the file f. The length of the streams should be equal to 'length'.
 def write_matrix_stream( f, mtrx, length ):
+   # Note: we write the string in an order interpretable by
+   # verilog's readmemb() function. 
    for stream_idx in range(length):
       m_str = ""
-      for vector in mtrx:
-         for el in vector:
+      for m in reversed(range(len(mtrx))):
+         vector = mtrx[m]
+         for n in reversed(range(len(vector))):
+            el = vector[n]
             if el[stream_idx]:
                m_str += "1"
             else:
