@@ -5,6 +5,7 @@
 import numpy as np
 from common import *
 from pysc.linear_algebra.sc_dot_product import *
+from pysc.rngs.lfsr import *
 import os
 import random
 
@@ -48,12 +49,12 @@ def generate( args ):
       os.makedirs( data )
  
    # write the matrix multiply testbench
-   gen_mm_data( data, M, N, O, args.rep )
+   gen_mm_data( data, M, N, O, _MM_TEST_SIZE, rep=args.rep, alaghi=args.alaghi )
    with open( os.path.join( tb, mm_tb_name + ".v" ), 'w' ) as f:
       write_mm_tb( f, mm_tb_name, mm_dut_name, M, N, O ) 
 
    # write the dot product testbench
-   gen_dp_data( data, N, args.rep )
+   gen_dp_data( data, N, _DP_TEST_SIZE, rep=args.rep, alaghi=args.alaghi )
    with open( os.path.join( tb, dp_tb_name + ".v" ), 'w' ) as f:
       write_dp_tb( f, dp_tb_name, dp_dut_name, args.rep, N )
 
@@ -414,7 +415,7 @@ def write_nadder_tb_header( f ):
 #  batch, an int, batch size M  (in matrix multiply MxN *NxO)
 #  inpt, an int, input feature size N
 #  output, an int, output feature size O
-def gen_mm_data( data_dir, batch, inpt, outpt, rep ):
+def gen_mm_data2( data_dir, batch, inpt, outpt, rep ):
    # compute the width of the select stream
    select_width = clogb2( inpt )
 
@@ -478,73 +479,77 @@ def gen_mm_data( data_dir, batch, inpt, outpt, rep ):
          f.write( m_str + "\n" )
 
    return
-          
+
+#
+#
+def gen_mm_data( data_dir, batch, inpt, outpt, length, rep="uni", alaghi=False ):
+   # generate data/input features matrix
+   datas = np.empty( (batch, inpt, length), dtype = bool )
+   for b in range(batch):
+      data = np.random.randint( length, size = inpt )
+      rng = lfsr_sequence( length, normalize = False )   
+
+      for i in range(inpt):
+         datas[b, i, :] = rng < data[i]
+
+   # generate weights matrix
+   weights = np.empty( (outpt, inpt, length), dtype = bool )
+   for o in range(outpt):
+      weight = np.random.randint( length, size = inpt )
+      rng = lfsr_sequence( length, normalize = False )
+
+      for i in range(inpt):
+         weights[o, i, :] = rng < weight[i]
+   
+   # write inputs and weights to data files
+   with open( os.path.join( data_dir, _MM_INPUT_FN ), 'w' ) as f:
+         write_matrix_stream( f, datas, length )
+   with open( os.path.join( data_dir, _MM_WEIGHT_FN ), 'w' ) as f:
+      write_matrix_stream( f, weights, length )
+
+   results = np.empty( (batch, outpt, length), dtype = bool )
+   if not alaghi:
+      # generate a select stream
+      sel_sequence = lfsr_sequence( length, normalize = False )
+      
+      # Write the select sequence out to a data file 
+      with open( os.path.join( data_dir, _MM_SEL_FN ), 'w' ) as f:
+         select_width = clogb2( inpt )
+         for num in sel_sequence:
+            sel = int(num % inpt)
+            s_str = int_to_n_length_binary( sel, select_width ) 
+            f.write( s_str + "\n" )
+
+      # compute matrix multiply and write the results file
+      for b in range(batch):
+         data_vec = datas[b, :, :]
+         for o in range(outpt):
+            weight_vec = weights[o, :, :]
+            res = sc_dot_product( data_vec, weight_vec, mode="LFSR", rep=rep, sel_sequence=sel_sequence )
+            results[b, o, :] = res
+   else:
+      for b in range(batch):
+         data_vec = datas[b, :, :]
+         for o in range(outpt):
+            weight_vec = weights[o, :, :]
+            res = sc_dot_product( data_vec, weight_vec, mode="ALAGHI", rep=rep )
+            results[b, o, :] = res
+
+   with open( os.path.join( data_dir, _MM_RES_FN ), 'w' ) as f:
+      write_matrix_stream( f, results, length )
 
 # This function generates a few files used by the dot product testbench.
-# The files generated contain binary data used as input vectors.
-# A file containing the expected results is also generated.
-# Parameters:
-#  data_dir, the directory to write the data files into
-#  rep, a string specifying the stochastic representation. Either 'uni' or 'bi'.
-#  length, an int, the length of the input vectors
-def gen_dp_data( data_dir, length, rep ):
-   # compute the bit width of the select streams
-   select_width = clogb2( length )
-
-   data_streams = [] # 2D array, this is a list of 100 data streams
-   weight_streams = [] # 2D array, list of 100 weight streams
-   select_streams = [] # 1D array of select numbers (0->length-1)
-   results = [] # a 1D array of results (single bits, 1 or 0)
-
-   # generate data and weights and select stream
-   for i in range(0, _DP_TEST_SIZE):
-      datas = []
-      weights = []
-      for j in range(0, length):
-         # generate bits randomly
-         datas.append( random.randint( 0, 1 ) )
-         weights.append( random.randint( 0, 1 ) )
-
-      data_streams.append( datas )
-      weight_streams.append( weights )
-      select_streams.append( random.randint( 0, length - 1 ) )
-
-   # generate the expected outputs
-   for i in range(0, _DP_TEST_SIZE):
-      res = sc_dot_product( data_streams[ i ], weight_streams[ i ], select_streams[ i ], rep )
-      results.append( res )           
-
-   # Open and write data to files 
-   with open( os.path.join( data_dir, _DP_DATA_FN ), 'w' ) as f:
-      for stream in data_streams:
-         s_str = stream_to_str( stream )
-         f.write( s_str + "\n" )
-
-   with open( os.path.join( data_dir, _DP_WEIGHT_FN ), 'w' ) as f:
-      for stream in weight_streams:
-         s_str = stream_to_str( stream )
-         f.write( s_str + "\n" )
-
-   with open( os.path.join( data_dir, _DP_SELECT_FN ), 'w' ) as f:
-      for stream in select_streams:
-         s_str = int_to_n_length_binary( stream, select_width ) 
-         f.write( s_str + "\n" )
-
-   with open( os.path.join( data_dir, _DP_RES_FN ), 'w' ) as f:
-      for result in results:
-         res_str = str(result)
-         f.write( res_str + "\n" )
-
-   return
-
+# Files for input data vector, weight vector, select streams and final
+# dot_product results are generated. 
+#
 # Parameters:
 #  data_dir, the directory to write the 'mif' data files
 #  dimension, an int, the dimension of the vectors
 #  length, the length of the input streams (essentially the length of the test)
 #  rep, a string, 'uni' or 'bi' specifying the stochastic representation
 #  alaghi, a boolean, specifies whether alaghi adders are used in the dot_product
-def gen_dp_data2( data_dir, dimension, length, rep='uni', alaghi=False ):
-   # randomly egenrate some data and weight vectors
+def gen_dp_data( data_dir, dimension, length, rep='uni', alaghi=False ):
+   # randomly generate some data and weight vectors
    data = np.random.randint( length, size = dimension ) 
    weight = np.random.randint( length, size = dimension )
 
@@ -561,46 +566,49 @@ def gen_dp_data2( data_dir, dimension, length, rep='uni', alaghi=False ):
    # Write the data and weight vectors out to 'mif' files
    # Open and write data to files 
    with open( os.path.join( data_dir, _DP_DATA_FN ), 'w' ) as f:
-      for stream in data_streams:
+      for stream in datas:
+         s_str = stream_to_str( stream )
+         f.write( s_str + "\n" )
+   with open( os.path.join( data_dir, _DP_WEIGHT_FN ), 'w' ) as f:
+      for stream in weights:
          s_str = stream_to_str( stream )
          f.write( s_str + "\n" )
 
-   with open( os.path.join( data_dir, _DP_WEIGHT_FN ), 'w' ) as f:
-      for stream in weight_streams:
-         s_str = stream_to_str( stream f.write( s_str + "\n" )
-         f.write( s_str + "\n" )
+   if not alaghi:
+      # generate a select stream
+      sel_sequence = lfsr_sequence( length, normalize = False )
+      
+      # Write the select sequence out to a data file 
+      with open( os.path.join( data_dir, _DP_SELECT_FN ), 'w' ) as f:
+         select_width = clogb2( dimension )
+         for num in sel_sequence:
+            sel = int(num % dimension)
+            s_str = int_to_n_length_binary( sel, select_width ) 
+            f.write( s_str + "\n" )
+      
+      # compute the standard dot product
+      result = sc_dot_product( datas, weights, mode="LFSR", rep=rep, sel_sequence=sel_sequence )
+   else:
+      result = sc_dot_product( datas, weights, mode="ALAGHI", rep=rep )
 
-
-    
-
-   print( datas )
-
-gen_dp_data2( "x", 8, 16 )
-
-#--------Helper functions----------#
-# Computes the stochastic dot product of the two vectors, data_vec and weight_vec.
-# Parameters:
-#  data_vec and weight_vec are arrays of 1's and 0's
-#  sel, is an integer in the range of 0 to length-1, where length is size of vectors
-def sc_dot_product( data_vec, weight_vec, sel, rep='uni' ):
-   reverseIndex = len(data_vec) - 1 - sel
-   if rep == 'uni':
-      # uni polar multiplier is an AND gate
-      return data_vec[reverseIndex] & weight_vec[reverseIndex]
-   elif rep == 'bi':
-      # bi polar multiplier is an XNOR gate
-      xor = data_vec[reverseIndex] ^ weight_vec[reverseIndex]
-      if xor == 1:
-         return 0
-      elif xor == 0:
-         return 1
+   # write out the dot_product result to a 'mif' file
+   with open( os.path.join( data_dir, _DP_RES_FN ), 'w' ) as f:
+      for res in result:
+         if res:
+            res_str = "1"
+         else:
+            res_str = "0"
+         f.write( res_str + "\n" )
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.
 def stream_to_str( stream ):
    s_str = ""
    for bit in stream:
-      s_str += str(bit)
+      if bit:
+         s_str += "1"
+      else:
+         s_str += "0"
         
    return s_str
 
@@ -611,3 +619,18 @@ def int_to_n_length_binary( num, n ):
       b_str = "0" + b_str
 
    return b_str
+
+# Writes a flattened form of the matrix (elements are streams of 1s and 0s)
+# to the file f. The length of the streams should be equal to 'length'.
+def write_matrix_stream( f, mtrx, length ):
+   for stream_idx in range(length):
+      m_str = ""
+      for vector in mtrx:
+         for el in vector:
+            if el[stream_idx]:
+               m_str += "1"
+            else:
+               m_str += "0"
+
+      f.write( m_str + "\n" )
+
