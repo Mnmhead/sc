@@ -49,7 +49,7 @@ module sc_matrix_multiply_wrapper(
       end
    endgenerate
    
-   // Instantiate M*N stochastic number generators for the input_matrix
+   // Instantiate M*N stochastic number generators for the weight matrix
    wire [BATCH_SIZE*INPUT_FEATURES-1:0] stoch_weights;
    genvar o;
    genvar n;
@@ -66,13 +66,12 @@ module sc_matrix_multiply_wrapper(
       end
    endgenerate
 
-   // Generate the select streams for addition operaitons within the matrix
+   // Generate the select streams for addition operations within the matrix
    // multiply module. We will need INPUT_FEATURES number of select streams.
-   // lfsr or counter or some shit.
    wire [INPUT_FEATURES-1:0] selects;
-
    // TODO code for select streams here
-
+   
+   
 
    // The core of the computation, the matrix multiply module
    wire [BATCH_SIZE*OUTPUT_FEATURES-1:0] stoch_output;
@@ -99,7 +98,7 @@ module sc_matrix_multiply_wrapper(
    always @ (posedge clk) begin
       if(rst == 1) begin
          last <= 0;
-      end else if (last[BINARY_PRECISION] == 1) begin
+      end else if(last[BINARY_PRECISION] == 1) begin
          last <= 0;
       end else begin
          last <= last + 1;
@@ -107,7 +106,7 @@ module sc_matrix_multiply_wrapper(
    end
 
    // I guess this works??
-   assign outputWrEn = (last[BINARY_PRCISION] == 1)
+   assign outputWrEn = (last[BINARY_PRECISION] == 1)
 
    // When the stoch_output becomes valid we need to convert it out to the
    // digital domain. Thus we stamp out M*O stochastic to digital convertors.

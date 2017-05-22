@@ -667,7 +667,6 @@ def gen_alaghi_data( data_dir, n, length ):
    inpt = np.random.randint( length, size = n )
    rng = lfsr_sequence( length, normalize = False )
    inputs = np.empty( (n, length), dtype = bool )
-
    for d in range(n):
       inputs[d, :] = rng < inpt[d]
 

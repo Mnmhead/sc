@@ -1,2 +1,10 @@
 - Re-verify that all the testbenches work at this point
--make a stochastic dot product simulation module, one with SNGs and convertors
+- make a matrix multiply module wrapper that could actually run on the FPGA
+- make a stochastic dot product simulation module, one with SNGs and convertors
+- change lfsr code, use armin's code instead. This requires going on the downstairs lab machine and
+      generating a file to see what the heck it looks like. Then add random-seeding options
+      to the verilog LFSRs
+
+
+
+- maybe think about a paper/report to right. 
