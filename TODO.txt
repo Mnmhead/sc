@@ -1,3 +1,2 @@
--implement alaghi_nadder tb generation
--implement alaghi_nadder data file generation
+- Re-verify that all the testbenches work at this point
 -make a stochastic dot product simulation module, one with SNGs and convertors
