@@ -15,11 +15,8 @@ module sng #(
    input clk;
    input rst;
    input [PRECISION-1] in;
+   input [PRECISION-1] rng;
    output out;
-
-   // instantiate an LFSR with the proper precision
-   wire [PRECISION-1:0] rng;
-   lfsr LFSR #(PRECISION)(.clk(clk), .rst(rst), .out(rng));   
 
    // pass the LFSR's input to the convertor and clock the output
    reg ds_out [1:0];
