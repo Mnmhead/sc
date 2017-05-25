@@ -19,6 +19,7 @@ module alaghi_adder(clk, rst, x, y, out);
    wire   xor_input = x ^ y;
    
    reg 	  tff;
+   initial tff = reset_seed;
    always @ (posedge clk) begin
       if (rst == 1) begin
 	 tff <= reset_seed;

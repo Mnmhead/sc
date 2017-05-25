@@ -19,13 +19,24 @@ def generate( args ):
    nadder_name = NADDER
    alaghi_nadder_name = ALAGHI_NADDER
 
-   # Write the supporting IP, the dot_product and nadder.
+   # Write the supporting IP, the dot_product, shift_register, and nadder.
    if ( args.alaghi ):
       with open( os.path.join( args.dest_dir, alaghi_nadder_name + ".v" ), 'w' ) as f:
          write_alaghi_nadder_module( f, alaghi_nadder_name, N ) 
+     	
+      shift = int(clogb2(args.input_size)) + 1
+      shift_name = "shift_" + str(shift) + "_register"
+      with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
+         write_shift_register_module( f, shift_name, shift )
+
    else:
       with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
          write_nadder_module( f, nadder_name, N )
+
+      shift = 2
+      shift_name = "shift_" + str(shift) + "_register"
+      with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
+         write_shift_register_module( f, shift_name, shift )
 
    with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
       write_dot_prod_module( f, dp_name, N, args.rep, args.alaghi )

@@ -1,28 +1,12 @@
-   - Select Streams: 
-      For now, there is no vander corpit circuit. For LFSR, we can 'mod' a sufficiently
-      large LFSR to obtain a 'random' binary number for select streams. Counters are
-      trivial.
- 
    - make a matrix multiply wrapper
      There can be two kinds of wrappers. One wrapper can take a hard-coded
      set of weights and hard-wire those weights into the module? Maybe talk more
      about this at the next meeting. I am confused how we can use hard-wired weights
      when we will need to be changing the weights during training.
 
-   - think about how the matrix multiply wrapper is going to work.
-      I can understand the binary->stochastic portion (weight and input stream generation)
-      How to I make the back-end, meaning, how do I make stochastic->binary conversion.
-      I was told by vincent that its Ok at this point to simply count up the values
-      when doing stochastic to digital conversion...I should talk more to this point
-      at the next meeting.
-
    - OK. We will have 3? possible types of noise source choices. We have weights, input_features,
      and the select streams. I guess we will have choices for each available through arguments
      to the script.
-
-   - Does SNG.v need restart and enable signals?
-
-   - make alaghi_nadder testbench and generate it in tb_gen
 
    - I need to really think about my 'API' Im building.
      What kind of stuff do I really want my code to do?

@@ -1,6 +1,12 @@
-- Re-verify that all the testbenches work at this point
+- verify that dot_product with alaghi adder works
+- verify that matrix multiply with alaghi adder works
 - make a matrix multiply module wrapper that could actually run on the FPGA
 - make a stochastic dot product simulation module, one with SNGs and convertors
 - how to seed LFSRs? There is definitely a wrong way to seed them.
+
+- ok so I saw some weird stuff with the alaghi adder and the reset signal today.
+   If the reset signal is high and the starting input causes xor_input to be high, then
+   the tff will change values immediately when rst is de-asserted instead of 1 cycle later like we want.
+   Ask Vincent about this.
 
 - maybe think about a paper/report to right. 

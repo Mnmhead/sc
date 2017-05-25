@@ -6,6 +6,7 @@ import numpy as np
 from common import *
 from pysc.linear_algebra.sc_dot_product import *
 from pysc.rngs.lfsr import *
+from pysc.core.arithmetic import *
 import os
 import random
 
@@ -59,7 +60,7 @@ def generate( args ):
    # write the dot product testbench
    gen_dp_data( data, N, _DP_TEST_SIZE, rep=args.rep, alaghi=args.alaghi )
    with open( os.path.join( tb, dp_tb_name + ".v" ), 'w' ) as f:
-      write_dp_tb( f, dp_tb_name, dp_dut_name, N, rep=args.rep )
+      write_dp_tb( f, dp_tb_name, dp_dut_name, N, rep=args.rep, alaghi=args.alaghi )
 
    if args.alaghi:
       alaghi_tb_name = ALAGHI_NADDER + "_tb"
@@ -207,7 +208,7 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
 #  dut_name, a string, the name of the module to test (device under test)
 #  rep, a string specifying the stochastic representation (either uni or bi)
 #  length, an integer, the length of the input vectors
-def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
+def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni", alaghi = False ):
    # write the header comment
    write_dp_tb_header( f )
 
@@ -218,7 +219,8 @@ def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
    write_line( f, "" )   
    write_line( f, "module " + module_name + "();" )
    write_line( f, "parameter DIMENSION =     " + str(dimension) + ";", 1 )
-   write_line( f, "parameter SELECT_WIDTH =  " + str(select_width) + ";", 1 )
+   if not alaghi:
+      write_line( f, "parameter SELECT_WIDTH =  " + str(select_width) + ";", 1 )
    write_line( f, "parameter DATA_VECTOR =   \"" + _DP_DATA_FN + "\";", 1 )
    write_line( f, "parameter WEIGHT_VECTOR = \"" + _DP_WEIGHT_FN + "\";", 1 )
    write_line( f, "parameter SELECT_STREAM = \"" + _DP_SELECT_FN + "\";", 1 )
@@ -230,19 +232,22 @@ def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
    write_line( f, "reg                     rst;", 1 )
    write_line( f, "wire [DIMENSION-1:0]    data;", 1 )
    write_line( f, "wire [DIMENSION-1:0]    weights;", 1 )
-   write_line( f, "wire [SELECT_WIDTH-1:0] sel;", 1 )
+   if not alaghi:
+      write_line( f, "wire [SELECT_WIDTH-1:0] sel;", 1 )
    write_line( f, "wire                    result;", 1 )
    write_line( f, "wire                    valid;", 1 )
    write_line( f, "" )
    write_line( f, "// read input data and expected output data", 1 )
    write_line( f, "reg [DIMENSION-1:0] test_data [LENGTH-1:0];", 1 )
    write_line( f, "reg [DIMENSION-1:0] test_weights [LENGTH-1:0];", 1 )
-   write_line( f, "reg [SELECT_WIDTH-1:0] test_sel [LENGTH-1:0];", 1 )
+   if not alaghi:
+      write_line( f, "reg [SELECT_WIDTH-1:0] test_sel [LENGTH-1:0];", 1 )
    write_line( f, "reg expected_result [LENGTH-1:0];", 1 )
    write_line( f, "initial begin", 1 )
    write_line( f, "$readmemb(DATA_VECTOR, test_data, 0, LENGTH-1);", 2 )
    write_line( f, "$readmemb(WEIGHT_VECTOR, test_weights, 0, LENGTH-1);", 2 )
-   write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);", 2 )
+   if not alaghi:
+      write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);", 2 )
    write_line( f, "$readmemb(DP_RESULT, expected_result, 0, LENGTH-1);", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
@@ -261,7 +266,8 @@ def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
    write_line( f, "end", 1 )
    write_line( f, "assign data = test_data[test_index];", 1 )
    write_line( f, "assign weights = test_weights[test_index];", 1 )
-   write_line( f, "assign sel = test_sel[test_index];", 1 )
+   if not alaghi:
+      write_line( f, "assign sel = test_sel[test_index];", 1 )
    write_line( f, "" )
    write_line( f, "// Output checking and error handling", 1 )
    write_line( f, "integer result_index;", 1 )
@@ -296,7 +302,8 @@ def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
    write_line( f, ".rst(rst),", 2 ) 
    write_line( f, ".data(data),", 2 )
    write_line( f, ".weights(weights),", 2 )
-   write_line( f, ".sel(sel),", 2 )
+   if not alaghi:
+      write_line( f, ".sel(sel),", 2 )
    write_line( f, ".result(result),", 2 ) 
    write_line( f, ".valid(valid)", 2 )
    write_line( f, ");", 1 )
@@ -321,8 +328,6 @@ def write_dp_tb( f, module_name, dut_name, dimension, rep = "uni" ):
    write_line( f, "$stop;", 2 )
    write_line( f, "end", 1 )
    write_line( f, "endmodule // sc_dot_product_tb" )
-
-   return
 
 # Writes a testbench module for the generated sc_nadder.
 # Parameter:
@@ -394,22 +399,22 @@ def write_alaghi_nadder_tb( f, module_name, n ):
    # write the header comment
    write_alaghi_nadder_tb_header( f )
 
-   delay = int(clogb2( n )) + 1
+   delay = int(clogb2( n )) - 1
 
    write_line( f, "`timescale 1ns / 10ps" )
    write_line( f, "" )
    write_line( f, "module " + module_name + "();" )
    write_line( f, "parameter INPUT_STREAMS = " + str(n) + ";", 1 )
-   write_line( f, "parameter DELAY = " + str(delay) + ";", 1 )
-   write_line( f, "parameter INPUTS =        " + _ALAGHI_INPUT_FN + ";", 1 )
-   write_line( f, "parameter ADDER_RESULT =  " + _ALAGHI_RES_FN + ";", 1 )
-   write_line( f, "parameter TEST_SIZE =     " + str(_ALAGHI_TEST_SIZE) + ";", 1 )
+   write_line( f, "parameter DELAY =         " + str(delay) + ";", 1 )
+   write_line( f, "parameter INPUTS =        \"" + _ALAGHI_INPUT_FN + "\";", 1 )
+   write_line( f, "parameter ADDER_RESULT =  \"" + _ALAGHI_RES_FN + "\";", 1 )
+   write_line( f, "parameter TEST_LENGTH =   " + str(_ALAGHI_TEST_SIZE) + ";", 1 )
    write_line( f, "" )
    write_line( f, "// modules inputs and outputs", 1 )
-   write_line( f, "reg                     clk;", 1 )
-   write_line( f, "reg                     rst;", 1 )
-   write_line( f, "reg [INPUT_STREAMS-1:0] inpts;", 1 )
-   write_line( f, "wire                    out;", 1 )
+   write_line( f, "reg                      clk;", 1 )
+   write_line( f, "reg                      rst;", 1 )
+   write_line( f, "wire [INPUT_STREAMS-1:0] inpts;", 1 )
+   write_line( f, "wire                     out;", 1 )
    write_line( f, "" )
    write_line( f, "// read input data and expected results data", 1 )
    write_line( f, "reg [INPUT_STREAMS-1:0] test_inputs [TEST_LENGTH-1:0];", 1 )
@@ -429,19 +434,21 @@ def write_alaghi_nadder_tb( f, module_name, n ):
    write_line( f, "test_index <= test_index + 1;", 3 )
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
-   write_line( f, "assign inpts = test_inputs;", 1 )
+   write_line( f, "assign inpts = test_inputs[test_index];", 1 )
    write_line( f, "" )
    write_line( f, "// Output checking and error handling", 1 )
    write_line( f, "reg valid;", 1 )
    write_line( f, "reg [TEST_LENGTH-1:0] valid_delay;", 1 )
+   write_line( f, "initial valid_delay = 0;", 1 )
    write_line( f, "always @(posedge clk) begin", 1 )
    write_line( f, "if( rst ) begin", 2 )
    write_line( f, "valid <= 0;", 3 )
+   write_line( f, "valid_delay <= 0;", 3 )
    write_line( f, "end else begin", 2 )
    write_line( f, "if( valid_delay == DELAY ) begin", 3 )
    write_line( f, "valid <= 1;", 4 )
    write_line( f, "end else begin", 3 )
-   write_line( f, "valid_delay <= valid_delay + 1", 4 )
+   write_line( f, "valid_delay <= valid_delay + 1;", 4 )
    write_line( f, "end", 3 )
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
@@ -453,9 +460,9 @@ def write_alaghi_nadder_tb( f, module_name, n ):
    write_line( f, "if( rst ) begin", 2 )
    write_line( f, "result_index <= 0;", 3 )
    write_line( f, "end else if( valid == 1'b1 ) begin", 2 )
-   write_line( f, "if( result != expected_result[result_index] ) begin", 3 )
+   write_line( f, "if( out != expected_results[result_index] ) begin", 3 )
    write_line( f, "$display(\"Error. Expected result %d does not match actual %d. On result index: %d\",", 4 )
-   write_line( f, "expected_result[result_index], out, result_index);", 5 )
+   write_line( f, "expected_results[result_index], out, result_index);", 5 )
    write_line( f, "errors = errors + 1;", 4 )
    write_line( f, "end", 3 )
    write_line( f, "" )
@@ -477,7 +484,7 @@ def write_alaghi_nadder_tb( f, module_name, n ):
    write_line( f, "initial begin", 1 )
    write_line( f, "// initialize inputs", 2 )
    write_line( f, "rst = 1;", 2 )
-   write_line( f, "#(8*CLOCK_PERIOD);", 2 )
+   write_line( f, "#(1*CLOCK_PERIOD);", 2 )
    write_line( f, "" )
    write_line( f, "// start sim", 2 )
    write_line( f, "rst = 0;", 2 )
@@ -620,9 +627,6 @@ def gen_dp_data( data_dir, dimension, length, rep='uni', alaghi=False ):
       datas[d, :] = rng0 < data[d]
       weights[d, : ] = rng1 < weight[d]
 
-   #print( datas[:,10] )
-   #print( weights[:,10] )
-
    # Write the data and weight vectors out to 'mif' files
    # Open and write data to files 
    with open( os.path.join( data_dir, _DP_DATA_FN ), 'w' ) as f:
@@ -675,12 +679,12 @@ def gen_alaghi_data( data_dir, n, length ):
 
    # Write the input data to a file
    with open( os.path.join( data_dir, _ALAGHI_INPUT_FN ), 'w' ) as f:
-      for stream in inputs:
-         s_str = stream_to_str( stream )
+      for stream in range(length):
+         s_str = stream_to_str( inputs[:,stream] )
          f.write( s_str + "\n" )
 
    # compute the result and write them to a file
-   result = alaghi_adder(inputs)
+   result = alaghi_adder( inputs, n, length )
    with open( os.path.join( data_dir, _ALAGHI_RES_FN ), 'w' ) as f:
       for res in result:
          if res:
@@ -692,21 +696,13 @@ def gen_alaghi_data( data_dir, n, length ):
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.
 def stream_to_str( stream, reverse = False ):
-   if reverse:
-      s_str = ""
-      for bit in reversed(range(len(stream))):
-         if bit:
-            s_str += "1"
-         else:
-            s_str += "0"
-   else:
-      s_str = ""
-      for bit in stream:
-         if bit:
-            s_str += "1"
-         else:
-            s_str += "0"
-           
+   s_str = ""
+   for bit in stream:
+      if bit:
+         s_str = s_str + "1"
+      else:
+         s_str = s_str + "0"
+
    return s_str
 
 # Converts a number, num, to a binary string of precision n.
@@ -735,3 +731,21 @@ def write_matrix_stream( f, mtrx, length ):
 
       f.write( m_str + "\n" )
 
+def alaghi_adder( inputs, dimensions, length ):
+   dims = int(2 ** clogb2(dimensions))
+   zero = np.zeros( length, dtype=bool )
+   while dims > 1:
+      x = 0
+      while x in range(dims):
+         op_a = zero if x > dimensions else inputs[x, :]
+         op_b = zero if x+1 > dimensions else inputs[x+1, :]
+         add_res = sc_add( op_a, op_b, select_mode = "ALAGHI" )
+         if x == 0:
+            inputs[0, :] = add_res
+         else:
+            inputs[x/2, :] = add_res
+         x = x + 2
+
+      dims = dims / 2
+
+   return inputs[0, :]

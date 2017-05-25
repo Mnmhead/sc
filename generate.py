@@ -7,7 +7,6 @@
 import argparse
 import os
 import sc_gen
-import srcs_gen
 import tb_gen
 
 
@@ -83,9 +82,6 @@ def cli():
 # Script entry point function
 if __name__ == '__main__':
    args = cli()
-   print( "Generating Basic Modules..." )
-   srcs_gen.generate( args )
-   print( "done!" )
    print( "Generating Modules..." )
    sc_gen.generate( args )
    print( "done!" )
