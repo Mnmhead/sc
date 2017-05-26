@@ -1,8 +1,10 @@
-- verify that dot_product with alaghi adder works
-- verify that matrix multiply with alaghi adder works
-- make a matrix multiply module wrapper that could actually run on the FPGA
+- verify that dot_product with alaghi adder works (arbitrary dimensions tho)
+- verify that matrix multiply with alaghi adder works (arbitrary dimensions tho)
+- how to seed LFSRs? Just make sure thier seeds are not the same
 - make a stochastic dot product simulation module, one with SNGs and convertors
-- how to seed LFSRs? There is definitely a wrong way to seed them.
+- make a matrix multiply module wrapper that could actually run on the FPGA
+
+- Add alaghi_adder tree to arithmetic.py in Vincent's project? Yeah I think I will.
 
 - ok so I saw some weird stuff with the alaghi adder and the reset signal today.
    If the reset signal is high and the starting input causes xor_input to be high, then
