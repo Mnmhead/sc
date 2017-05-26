@@ -17,3 +17,4 @@ run : init
 # find . $(DONTCLEAN) | xargs rm -rf
 clean :
 	rm -rf *.pyc gen
+	find . -name "*.pyc" -type f | xargs rm -rf
