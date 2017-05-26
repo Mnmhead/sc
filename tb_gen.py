@@ -55,7 +55,7 @@ def generate( args ):
    # write the matrix multiply testbench
    gen_mm_data( data, M, N, O, _MM_TEST_SIZE, rep=args.rep, alaghi=args.alaghi )
    with open( os.path.join( tb, mm_tb_name + ".v" ), 'w' ) as f:
-      write_mm_tb( f, mm_tb_name, mm_dut_name, M, N, O ) 
+      write_mm_tb( f, mm_tb_name, mm_dut_name, M, N, O, alaghi=args.alaghi )
 
    # write the dot product testbench
    gen_dp_data( data, N, _DP_TEST_SIZE, rep=args.rep, alaghi=args.alaghi )
@@ -85,7 +85,7 @@ def generate( args ):
 # batch, an int, specifies batch size (in a matrix mult MxN * NxO, M is batch size)
 # inpt, an int, specifies input feature size (N)
 # outpt, an int, specifies output feature size (O)
-def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
+def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt, alaghi=False ):
    # write header comment
    write_mm_tb_header( f )
    
@@ -96,10 +96,12 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "parameter BATCH_SIZE =      " + str(batch) + "; // M", 1 )
    write_line( f, "parameter INPUT_FEATURES =  " + str(inpt) + "; // N", 1 ) 
    write_line( f, "parameter OUTPUT_FEATURES = " + str(outpt) + "; // O", 1 )
-   write_line( f, "parameter SELECT_WIDTH =    " + str(select_width) + ";", 1 )
+   if not alaghi:
+      write_line( f, "parameter SELECT_WIDTH =    " + str(select_width) + ";", 1 )
    write_line( f, "parameter INPUT_MATRICES =  \"" + _MM_INPUT_FN + "\";", 1 )
    write_line( f, "parameter WEIGHT_MATRICES = \"" + _MM_WEIGHT_FN + "\";", 1 )
-   write_line( f, "parameter SELECT_STREAM =   \"" + _MM_SEL_FN + "\";", 1 )
+   if not alaghi:
+      write_line( f, "parameter SELECT_STREAM =   \"" + _MM_SEL_FN + "\";", 1 )
    write_line( f, "parameter MM_RESULT =       \"" + _MM_RES_FN + "\";", 1 )
    write_line( f, "parameter LENGTH =       " + str(_MM_TEST_SIZE) + ";", 1 )
    write_line( f, "" )
@@ -108,19 +110,22 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "reg rst;", 1 )
    write_line( f, "wire [BATCH_SIZE*INPUT_FEATURES-1:0] inputStreams;", 1 )
    write_line( f, "wire [OUTPUT_FEATURES*INPUT_FEATURES-1:0] weightStreams;", 1 )
-   write_line( f, "wire [SELECT_WIDTH-1:0]                 sel;", 1 )
+   if not alaghi:
+      write_line( f, "wire [SELECT_WIDTH-1:0]                 sel;", 1 )
    write_line( f, "wire [BATCH_SIZE*OUTPUT_FEATURES-1:0]    outputStreams;", 1 )
    write_line( f, "wire                                     outputWriteEn;", 1 )
    write_line( f, "" )
    write_line( f, "// read input data and expected output data", 1 )
    write_line( f, "reg [BATCH_SIZE*INPUT_FEATURES-1:0] test_input [LENGTH-1:0];", 1 )
    write_line( f, "reg [OUTPUT_FEATURES*INPUT_FEATURES-1:0] test_weight [LENGTH-1:0];", 1 )
-   write_line( f, "reg [SELECT_WIDTH-1:0]                 test_sel [LENGTH-1:0];", 1 )
+   if not alaghi:
+      write_line( f, "reg [SELECT_WIDTH-1:0]                 test_sel [LENGTH-1:0];", 1 )
    write_line( f, "reg [BATCH_SIZE*OUTPUT_FEATURES-1:0] expected_results [LENGTH-1:0];", 1 )
    write_line( f, "initial begin", 1 )
    write_line( f, "$readmemb(INPUT_MATRICES, test_input, 0, LENGTH-1);", 2 )
    write_line( f, "$readmemb(WEIGHT_MATRICES, test_weight, 0, LENGTH-1);", 2 )
-   write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);", 2 )
+   if not alaghi:
+      write_line( f, "$readmemb(SELECT_STREAM, test_sel, 0, LENGTH-1);", 2 )
    write_line( f, "$readmemb(MM_RESULT, expected_results, 0, LENGTH-1);", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
@@ -139,7 +144,8 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "end", 1 )
    write_line( f, "assign inputStreams = test_input[test_index];", 1 )
    write_line( f, "assign weightStreams = test_weight[test_index];", 1 )
-   write_line( f, "assign sel = test_sel[test_index];", 1 )
+   if not alaghi:
+      write_line( f, "assign sel = test_sel[test_index];", 1 )
    write_line( f, "" )
    write_line( f, "// output checking and error handling", 1 )
    write_line( f, "integer result_index;", 1 )
@@ -174,7 +180,8 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt ):
    write_line( f, "rst,", 2 )
    write_line( f, "inputStreams,", 2 )
    write_line( f, "weightStreams,", 2 )
-   write_line( f, "sel,", 2 )
+   if not alaghi:
+      write_line( f, "sel,", 2 )
    write_line( f, "outputStreams,", 2 )
    write_line( f, "outputWriteEn", 2 )
    write_line( f, ");", 1 )

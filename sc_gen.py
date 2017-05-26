@@ -24,7 +24,7 @@ def generate( args ):
       with open( os.path.join( args.dest_dir, alaghi_nadder_name + ".v" ), 'w' ) as f:
          write_alaghi_nadder_module( f, alaghi_nadder_name, N ) 
      	
-      shift = int(clogb2(args.input_size)) + 1
+      shift = int(clogb2(args.input_size)) + 2
       shift_name = "shift_" + str(shift) + "_register"
       with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
          write_shift_register_module( f, shift_name, shift )
@@ -39,11 +39,11 @@ def generate( args ):
          write_shift_register_module( f, shift_name, shift )
 
    with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
-      write_dot_prod_module( f, dp_name, N, args.rep, args.alaghi )
+      write_dot_prod_module( f, dp_name, N, args.rep, alaghi=args.alaghi )
 
    # write the matrix multiply module
    with open( os.path.join( args.dest_dir, mat_mult_name + ".v" ), 'w' ) as f: 
-      write_matrix_module( f, mat_mult_name, M, N, O )
+      write_matrix_module( f, mat_mult_name, M, N, O, alaghi=args.alaghi)
 
 # Writes a stochatsic matrix multiply module to an output file, f.
 # Parameters:
@@ -204,8 +204,9 @@ def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False )
    delay = None
    if alaghi:
       # delay for alaghi tree is one cycle for every level, plus one for
-      # final output register.
-      delay = int(clogb2( length )) + 1
+      # final output register of the alaghi adder and another for the final
+      # register of the dot product.
+      delay = int(clogb2( length )) + 2
    else:
       # two clock cycle delay for standard dot product
       # 1 cycle for multiplication, 1 for addition (single mux)
