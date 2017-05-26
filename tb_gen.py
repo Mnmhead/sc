@@ -702,13 +702,17 @@ def gen_alaghi_data( data_dir, n, length ):
 
 # Takes in an array of 1's and 0's and outputs a string of
 # those 1's and 0's concatenated.
+# Characters of the stream are concatenated to the front,
+# this is because we write the stream to the data file
+# in a way that makes it easy for verilog's readmemb()
+# to read the data.
 def stream_to_str( stream, reverse = False ):
    s_str = ""
    for bit in stream:
       if bit:
-         s_str = s_str + "1"
+         s_str = "1" + s_str
       else:
-         s_str = s_str + "0"
+         s_str = "0" + s_str
 
    return s_str
 
@@ -744,8 +748,8 @@ def alaghi_adder( inputs, dimensions, length ):
    while dims > 1:
       x = 0
       while x in range(dims):
-         op_a = zero if x > dimensions else inputs[x, :]
-         op_b = zero if x+1 > dimensions else inputs[x+1, :]
+         op_a = zero if x >= dimensions else inputs[x, :]
+         op_b = zero if x+1 >= dimensions else inputs[x+1, :]
          add_res = sc_add( op_a, op_b, select_mode = "ALAGHI" )
          if x == 0:
             inputs[0, :] = add_res

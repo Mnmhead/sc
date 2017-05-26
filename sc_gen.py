@@ -348,6 +348,7 @@ def write_alaghi_nadder_module( f, module_name, n ):
 # the return parameters: wires, sum_regs, and alaghi_tuples.
 def compute_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
    wire_count = 0
+   next_input = 0
 
    while( n > 1 ):
       # t, the largest power of 2 within n
@@ -360,10 +361,11 @@ def compute_layer( n, layer_num, input_names, wires, sum_regs, alaghi_tuples):
          wires.append(wire_str)
          reg_str = "sumreg_" + str(layer_num) + "_" + str(wire_count)
          sum_regs.append(reg_str)
-         alaghi_tup = (input_names[i], input_names[i+1], wire_str)
+         alaghi_tup = (input_names[next_input], input_names[next_input+1], wire_str)
          alaghi_tuples.append( alaghi_tup )
 
          wire_count += 1
+         next_input = next_input + 2
          i = i + 2
 
       n = n - t
