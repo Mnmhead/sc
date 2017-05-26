@@ -114,10 +114,10 @@ def write_matrix_module( f, module_name, batch, inpt, outpt, alaghi = False ):
 #  f, the file to write to
 #  rep, a string for the stochastic represntation type (uni or bi)
 #  module_name, a string for the module name
-#  length, an int which specifies the length of the input vectors to the module
-def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False ):
+#  dimensions, an int which specifies the length of the input vectors to the module
+def write_dot_prod_module( f, module_name, dimensions, rep = "uni", alaghi = False ):
    # compute number of select streams
-   select_width = clogb2( length )
+   select_width = clogb2( dimensions )
    
    # write the header comment
    write_header_dot_prod( f )
@@ -133,7 +133,7 @@ def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False )
    write_line( f, "valid", 1 )
    write_line( f, ");" )
    write_line( f, "" )
-   write_line( f, "parameter LENGTH = " + str(length) + ";", 1 )
+   write_line( f, "parameter LENGTH = " + str(dimensions) + ";", 1 )
    if not alaghi:
       write_line( f, "parameter SELECT_WIDTH = " + str(select_width) + ";", 1 )
    write_line( f, "" )
@@ -206,7 +206,7 @@ def write_dot_prod_module( f, module_name, length, rep = "uni", alaghi = False )
       # delay for alaghi tree is one cycle for every level, plus one for
       # final output register of the alaghi adder and another for the final
       # register of the dot product.
-      delay = int(clogb2( length )) + 2
+      delay = int(clogb2( dimensions )) + 2
    else:
       # two clock cycle delay for standard dot product
       # 1 cycle for multiplication, 1 for addition (single mux)
