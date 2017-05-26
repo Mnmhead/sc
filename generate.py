@@ -56,8 +56,12 @@ def cli():
       default='uni', help='Type of stochastic representation, options are Uni or Bi'
    )
    parser.add_argument(
-      '-alaghi', dest='alaghi', action='store', type=bool, required=False,
+      '-alaghi', dest='alaghi', action='store', type=str2bool, nargs='?', required=False,
       default=False, help='Switches to alaghi adders instead of conventional sc adders'
+   )
+   parser.add_argument(
+      '-test', dest='test', action='store', type=str2bool, nargs='?', required=False,
+      default=True, help='Specifies to skip over test bench generation'
    )
    args = parser.parse_args()
    args.rep = str.lower( args.rep )
@@ -78,6 +82,14 @@ def cli():
 
    return args
 
+# Helper function to 'translate' user input into a boolean
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 # Script entry point function
 if __name__ == '__main__':
@@ -85,7 +97,8 @@ if __name__ == '__main__':
    print( "Generating Modules..." )
    sc_gen.generate( args )
    print( "done!" )
-   print( "Generating Testbenches..." )
-   tb_gen.generate( args )
-   print( "done!" )
+   if args.test:
+      print( "Generating Testbenches..." )
+      tb_gen.generate( args )
+      print( "done!" )
    

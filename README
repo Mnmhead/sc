@@ -28,6 +28,10 @@ The following arguments can be processed by the script:
    specifies that alaghi adders are used instead of conventional stochastic 
    adders.
 
+-notest
+   specifies to opt-out of testbench generation. Testbenches take a while to be generated
+   as matrix dimensions increase in size. Maybe this could be fixed by batching test-data writes?
+
 
 The srcs/templates directory contains a bunch of raw stochastic verilog code. For now it can be ignored.
 
