@@ -7,12 +7,34 @@ module sc_dot_product_sim();
    reg [WIDTH*DIMENSION-1:0] datas;
    reg [WIDTH*DIMENSION-1:0] weights;
 
+   // Clock Generation
+   parameter CLOCK_PERIOD=10;
+   initial clk=1;
+   always begin
+      #(CLOCK_PERIOD/2);
+      clk = ~clk;
+   end 
+
+   // 15 15 15 15
+   initial datas = 32'b00001111 00001111 00001111 00001111;
+   // 10 10 10 10
+   initial weights = 32'b00001010 00001010 00001010 00001010;
+
+   integer expected_result;
+   initial expected_result = 600;
+
    // Instantiate noise sources. Only two are required, only multipliers
    // required uncorrelated streams.
+   
+   reg [WIDTH-1:0] seed1;
+   reg [WIDTH-1:0] seed2;
+   initial seed1 = 8'b11110011
+   initial seed2 = 8'b00110001
+
    reg [WIDTH-1:0] rng0;
-   lfsr1 LFSR1(.clk(clk), .rst(rst), .seed(xxx), .enable(1), .restart(0), .out(rng0));
+   lfsr1 LFSR1(.clk(clk), .rst(rst), .seed(seed1), .enable(1), .restart(0), .out(rng0));
    reg [WIDTH-1:0] rng1;
-   lfsr2 LFSR2(.clk(clk), .rst(rst), .seed(xxx), .enable(1), .restart(0), .out(rng1)); 
+   lfsr2 LFSR2(.clk(clk), .rst(rst), .seed(seed2), .enable(1), .restart(0), .out(rng1)); 
 
    // Instantiate the SNGs to produce stochastic bitstreams for all
    // data and weights.
@@ -39,7 +61,8 @@ module sc_dot_product_sim();
    endgenerate
 
    // Generate a select stream for the adder.
-   reg [clogb2(DIMENSION)-1:0] sel;
+   //reg [clogb2(DIMENSION)-1:0] sel;
+   reg [2-1:0] sel;
    counter COUNTER(.clk(clk), .rst(rst), .enable(1), .restart(0), .out(sel));
 
    // Instantiate the dot product module
@@ -61,6 +84,9 @@ module sc_dot_product_sim();
    reg in_stream;
    reg [WIDTH:0] last_counter; 
    reg last;
+   initial in_stream = 0;
+   initial last_counter = 0;
+   initial last = 0;
    always @(posedge clk) begin
       if( valid == 1'b1 ) begin
          if( last_counter[WIDTH] == 1'b1 ) begin
@@ -85,9 +111,18 @@ module sc_dot_product_sim();
       .last(last), 
       .out(non_scaled_binary_result)
    );
-   
+
    wire [(WIDTH*2) + clogb2(DIMENSION) - 1:0] dot_product;
-   // what the heck....how do I scale the product back up to normal values
    assign dot_product = non_scaled_binary_result * clogb2(DIMENSION) * WIDTH // or 2 ** log2(WIDTH)
+ 
+   wire done;
+   assign done = (last == 1'b1);
+
+   always @(*) begin
+      if(done) begin
+         $display("expected result = %d\n actual result = %d\n", expected_result, dot_product );
+         $display("DONE!\n" );
+      end
+   end
 
 endmodule // sc_dot_product_sim

@@ -206,8 +206,6 @@ def write_mm_tb( f, module_name, dut_name, batch, inpt, outpt, alaghi=False ):
    write_line( f, "end", 1 )
    write_line( f, "endmodule // " + module_name )
 
-   return
-
 # Writes the testbench module for the generated sc_dot_product.
 # Parameters:
 #  f, the file to write to
@@ -691,7 +689,10 @@ def gen_alaghi_data( data_dir, n, length ):
          f.write( s_str + "\n" )
 
    # compute the result and write them to a file
-   result = alaghi_adder( inputs, n, length )
+   result = alaghi_adder( inputs )
+
+   #result = sc_nadder(inputs, select_mode = "ALAGHI", seed = 0)
+
    with open( os.path.join( data_dir, _ALAGHI_RES_FN ), 'w' ) as f:
       for res in result:
          if res:
@@ -709,6 +710,7 @@ def gen_alaghi_data( data_dir, n, length ):
 def stream_to_str( stream, reverse = False ):
    s_str = ""
    for bit in stream:
+      #s_str = "1" + s_str if bit else "0" + s_str
       if bit:
          s_str = "1" + s_str
       else:
@@ -742,7 +744,8 @@ def write_matrix_stream( f, mtrx, length ):
 
       f.write( m_str + "\n" )
 
-def alaghi_adder( inputs, dimensions, length ):
+def alaghi_adder( inputs ):
+   (dimensions, length) = inputs.shape
    dims = int(2 ** clogb2(dimensions))
    zero = np.zeros( length, dtype=bool )
    while dims > 1:
