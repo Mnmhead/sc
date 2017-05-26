@@ -6,12 +6,14 @@ DONTCLEAN = -maxdepth 1 -not -name "Makefile" -not -name README -not -name "sc_g
 # Main target
 all : run
 
+init :
+	mkdir gen
+
 # run the script with no arguments (sort of useless)
-run :
-	mkdir test
-	python generate.py -dst test
+run : init
+	python generate.py
 
 # delete everything not in DONTCLEAN args
 # find . $(DONTCLEAN) | xargs rm -rf
 clean :
-	rm -rf *.pyc test 
+	rm -rf *.pyc gen

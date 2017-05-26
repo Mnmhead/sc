@@ -37,8 +37,11 @@ The following arguments can be processed by the script:
    specifies to opt-out of testbench generation. Testbenches take a while to be generated
    as matrix dimensions increase in size. Maybe this could be fixed by batching test-data writes?
 
+
+NOTE: Please source the sourceme.sh file:
+   source sourceme.sh
+
 NOTE: This repository is dependent on pysc, a python 'library' of stochastic circuits. It
 can be found here: https://github.com/uwsampa/pysc/
 This repo contains python code to generate Stochastic Verilog modules, this code
 can be found in the python directory.
-The 'srcs' firectory contains a bunch of raw stochastic verilog modules, some complete some incomplete. 
