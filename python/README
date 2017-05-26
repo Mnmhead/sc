@@ -1,7 +1,12 @@
-The script, sc_gen.py, generates verilog modules and testbenches. 
-The top-level module it generates is a matrix multiply module in the stochastic domain.
+This repo contains python code to generate Stochastic Verilog modules, this code
+can be found in the python directory.
+
+The srcs/templates directory contains a bunch of raw stochastic verilog code. For now it can be ignored, but there might be some useful stuff in there.
+
+The top-level module, generate.py, generates a matrix multiply module in the stochastic domain.
 Additional lower level modules are generated. Eventually a wrapper module will be
 available for generation as well.
+Testbench and simulation module generation is optional by means of user arguments.
 
 The following arguments can be processed by the script:
 -dst <directory>
@@ -32,8 +37,8 @@ The following arguments can be processed by the script:
    specifies to opt-out of testbench generation. Testbenches take a while to be generated
    as matrix dimensions increase in size. Maybe this could be fixed by batching test-data writes?
 
-
-The srcs/templates directory contains a bunch of raw stochastic verilog code. For now it can be ignored.
-
 NOTE: This repository is dependent on pysc, a python 'library' of stochastic circuits. It
 can be found here: https://github.com/uwsampa/pysc/
+This repo contains python code to generate Stochastic Verilog modules, this code
+can be found in the python directory.
+The 'srcs' firectory contains a bunch of raw stochastic verilog modules, some complete some incomplete. 
