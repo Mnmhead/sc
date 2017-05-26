@@ -8,13 +8,10 @@ import argparse
 import os
 import sc_gen
 import tb_gen
-
+import sim_gen
 
 # Command line interface specification
-# 1. -dst specifies the location of the generated files
-# 2. -bs, -is, and -os are the dimensions of the input matrices to the module.
-# 3. -p specifies the stochastic representation type. There are two choices
-#     Unipolar and Bipolar.
+# See README for spec description
 def cli():
    parser = argparse.ArgumentParser(
       description='Generates Stochastic Matrix Multiply Verilog Modules'
