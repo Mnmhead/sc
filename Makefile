@@ -16,5 +16,5 @@ run : init
 # delete everything not in DONTCLEAN args
 # find . $(DONTCLEAN) | xargs rm -rf
 clean :
-	rm -rf *.pyc gen
+	rm -rf gen
 	find . -name "*.pyc" -type f | xargs rm -rf

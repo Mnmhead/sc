@@ -3,6 +3,7 @@
 # stochastic matrix multiply. 
 
 from common import *
+from shiftreg_gen import *
 import os
 
 # Generates modules in the stochastic domain. 
@@ -27,7 +28,7 @@ def generate( args ):
       shift = int(clogb2(args.input_size)) + 2
       shift_name = "shift_" + str(shift) + "_register"
       with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
-         write_shift_register_module( f, shift_name, shift )
+         write_shiftreg_module( f, shift_name, shift )
 
    else:
       with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
@@ -36,7 +37,7 @@ def generate( args ):
       shift = 2
       shift_name = "shift_" + str(shift) + "_register"
       with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
-         write_shift_register_module( f, shift_name, shift )
+         write_shiftreg_module( f, shift_name, shift )
 
    with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
       write_dot_prod_module( f, dp_name, N, args.rep, alaghi=args.alaghi )
