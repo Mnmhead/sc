@@ -3,48 +3,27 @@
 # stochastic matrix multiply. 
 
 from common import *
-from shiftreg_gen import *
 import os
+import sc_dot_product_gen
 
-# Generates modules in the stochastic domain. 
-# Opens and writes to files.
-# The contents of the files are specified by the users input.
-def generate( args ):
-   M = args.batch_size
-   N = args.input_size
-   O = args.output_size
+# Generates a stochastic matrix multiply module and writes it to a file.
+#  dest, a string, the directory to write the file to
+#  batch, an int, batch size (M in MxN * N*O)
+#  input_features, an int, N
+#  output_features, an int, O
+#  alaghi, boolean, specifies use of alaghi adders instead of conventional 
+#     stochastic adders
+def generate( dest, batch, input_features, output_features, alaghi ):
+   #M = args.batch_size
+   #N = args.input_size
+   #O = args.output_size
 
-   # if a module name is supplied, concatenate module names
-   mat_mult_name = MATRIX
-   dp_name = DOT_PROD
-   nadder_name = NADDER
-   alaghi_nadder_name = ALAGHI_NADDER
+   # Generate the core of matrix multiply, the dot_prodcut module   
+   sc_dot_product_gen.generate( dest, input_features, rep="uni", alaghi=alaghi )
 
-   # Write the supporting IP, the dot_product, shift_register, and nadder.
-   if ( args.alaghi ):
-      with open( os.path.join( args.dest_dir, alaghi_nadder_name + ".v" ), 'w' ) as f:
-         write_alaghi_nadder_module( f, alaghi_nadder_name, N ) 
-     	
-      shift = int(clogb2(args.input_size)) + 2
-      shift_name = "shift_" + str(shift) + "_register"
-      with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
-         write_shiftreg_module( f, shift_name, shift )
-
-   else:
-      with open( os.path.join( args.dest_dir, nadder_name + ".v" ), 'w' ) as f:
-         write_nadder_module( f, nadder_name, N )
-
-      shift = 2
-      shift_name = "shift_" + str(shift) + "_register"
-      with open( os.path.join( args.dest_dir, shift_name + ".v" ), 'w' ) as f:
-         write_shiftreg_module( f, shift_name, shift )
-
-   with open( os.path.join( args.dest_dir, dp_name + ".v" ), 'w' ) as f:
-      write_dot_prod_module( f, dp_name, N, args.rep, alaghi=args.alaghi )
-
-   # write the matrix multiply module
-   with open( os.path.join( args.dest_dir, mat_mult_name + ".v" ), 'w' ) as f: 
-      write_matrix_module( f, mat_mult_name, M, N, O, alaghi=args.alaghi)
+   with open( os.path.join( args.dest_dir, MATRIX + ".v" ), 'w' ) as f: 
+      write_header_mat_mult( f )
+      write_matrix_module( f, MATRIX, batch, input_features, output_features, alaghi=alaghi )
 
 # Writes a stochatsic matrix multiply module to an output file, f.
 # Parameters:
@@ -56,9 +35,6 @@ def write_matrix_module( f, module_name, batch, inpt, outpt, alaghi = False ):
    # compute the log base 2 of the input, 
    # this is how many select streams are required
    select_width = clogb2( inpt )
-
-   # write the header comment
-   write_header_mat_mult( f )
 
    write_line( f, "module " + module_name + "(" )
    write_line( f, "clk,", 1 )
@@ -111,7 +87,6 @@ def write_matrix_module( f, module_name, batch, inpt, outpt, alaghi = False ):
    write_line( f, "endmodule // " + module_name )
 
 # Writes the header comment for the sc_matrix_mult module.
-# This comment nincludes a timestamp of when the file was genertaed, in GMT.
 def write_header_mat_mult( f ):
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "// Create Date: " + get_time() )

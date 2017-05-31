@@ -2,9 +2,11 @@
 # This file contains a function to generate a Verilog module 
 # for stochastic dot product.
 
+import alaghi_nadder_gen
 from common import *
-import shiftreg_gen
 import os
+import sc_nadder_gen
+import shiftreg_gen
 
 # Opens and writes a stochastic dot product module to a file.
 #  dest, a string, the directory to write the file into
@@ -19,10 +21,13 @@ def generate( dest, dimensions, rep = "uni", alaghi = False ):
       # final output register of the alaghi adder and another for the final
       # register of the dot product.
       delay = int(clogb2( dimensions )) + 2
+      alaghi_nadder_gen.generate( dest, dimensions ) 
    else:
       # two clock cycle delay for standard dot product
       # 1 cycle for multiplication, 1 for addition (single mux)
       delay = 2
+      sc_nadder_gen( dest, dimensions )      
+
    shiftreg_gen.generate( dest, delay )
 
    with open( os.path.join( dest, DOT_PROD + ".v" ), 'w' ) as f:
