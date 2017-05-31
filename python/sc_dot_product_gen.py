@@ -1,12 +1,13 @@
 # Copyright (c) Gyorgy Wyatt Muntean 2017
-# Python script to generate a Verilog module for stochastic dot product.
+# This file contains a function to generate a Verilog module 
+# for stochastic dot product.
 
 from common import *
 import shiftreg_gen
 import os
 
 # Opens and writes a stochastic dot product module to a file.
-#  dest, s string, the directory to write the file into
+#  dest, a string, the directory to write the file into
 #  dimensions, an int, the dimension of the vectors to dot-product 
 #  rep, the stochastic representation
 #  alaghi, a boolean, specifies if alaghi adder tree is used
