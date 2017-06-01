@@ -15,21 +15,21 @@ module sc_dot_product_sim();
       clk = ~clk;
    end 
 
-   // 15 15 15 15
-   initial datas = 32'b00001111000011110000111100001111;
-   // 10 10 10 10
-   initial weights = 32'b00001010000010100000101000001010;
+   // 240 240 240 240
+   initial datas = 32'b11110000111100001111000011110000;
+   // 202 202 202 202
+   initial weights = 32'b11001010110010101100101011001010;
 
    integer expected_result;
-   initial expected_result = 600;
+   initial expected_result = 240*202*4;
 
    // Instantiate noise sources. Only two are required, only multipliers
    // required uncorrelated streams.
    
    reg [WIDTH-1:0] seed1;
    reg [WIDTH-1:0] seed2;
-   initial seed1 = 8'b11110011;
-   initial seed2 = 8'b00110001;
+   initial seed1 = 8'b11000011;
+   initial seed2 = 8'b10000001;
    wire [WIDTH-1:0] rng0;
    wire [WIDTH-1:0] rng1;
    lfsr LFSR1(.clk(clk), .rst(rst), .seed(seed1), .enable(1'b1), .restart(1'b0), .out(rng0));
@@ -118,7 +118,7 @@ module sc_dot_product_sim();
    //wire [(WIDTH*2) + clogb2(DIMENSION) - 1:0] dot_product;
    //assign dot_product = non_scaled_binary_result * 2^clogb2(DIMENSION) * WIDTH // or 2 ** log2(WIDTH)
    wire [17:0] dot_product;
-   assign dot_product = non_scaled_binary_result * 4 * 8;
+   assign dot_product = non_scaled_binary_result * 4 * 256;
  
    wire done;
    assign done = (last == 1'b1);
