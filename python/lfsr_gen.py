@@ -43,8 +43,15 @@ def write_lfsr_module( f, module_name, data_len, zero_detect=True ):
    taps_dict[24] = [24, 23, 22, 17] 
    taps_dict[32] = [32, 31, 30, 10] 
 
-    # begin writing the module
-   write_line( f, "module " + module_name + "();" )
+   # begin writing the module
+   write_line( f, "module " + module_name + "(" )
+   write_line( f, "clk,", 1 )
+   write_line( f, "rst,", 1 )
+   write_line( f, "seed,", 1 )
+   write_line( f, "enable,", 1 )
+   write_line( f, "restart,", 1 )
+   write_line( f, "out", 1 )
+   write_line( f, ");" )
    write_line( f, "parameter N = " + str(data_len) + ";", 1 ) 
    write_line( f, "" )
    write_line( f, "input clk;", 1 ) 
@@ -57,7 +64,7 @@ def write_lfsr_module( f, module_name, data_len, zero_detect=True ):
    write_line( f, "reg [N-1:0] shift_reg;", 1 ) 
    write_line( f, "wire shift_in;", 1 ) 
    write_line( f, "" )
-   write_line( f, "always @(posedge clk or pasedge rst) begin", 1 ) 
+   write_line( f, "always @(posedge clk or posedge rst) begin", 1 ) 
    write_line( f, "if (rst) shift_reg <= seed;", 2 ) 
    write_line( f, "else if (restart) shift_reg <= seed;", 2 ) 
    write_line( f, "else if (enable) shift_reg <= {shift_reg[N-2:0], shift_in};", 2 ) 
@@ -70,10 +77,10 @@ def write_lfsr_module( f, module_name, data_len, zero_detect=True ):
       taps = [3, 2]
 
    # add the first tap, then delete it from list
-   taps_str = "shift_reg[" + str(taps[0]) + "]" 
+   taps_str = "shift_reg[" + str(taps[0]-1) + "]" 
    del taps[0]
    for tap in taps:
-      taps_str += " ^ shift_reg[" + str(tap) + "]"
+      taps_str += " ^ shift_reg[" + str(tap-1) + "]"
    taps_str += ";"
 
    write_line( f, "wire xor_out;", 1 )
@@ -82,8 +89,8 @@ def write_lfsr_module( f, module_name, data_len, zero_detect=True ):
    if zero_detect:
       write_line( f, "" )
       write_line( f, "wire zero_detector;", 1 )
-      write_line( f, "assign zero_detector = ~(|(shift_reg[38:0]));", 1 )
-      write_line( f, "assign shift_in = xout_out ^ zero_detector;", 1 )
+      write_line( f, "assign zero_detector = ~(|(shift_reg[N-2:0]));", 1 )
+      write_line( f, "assign shift_in = xor_out ^ zero_detector;", 1 )
       write_line( f, "" )
 
    write_line( f, "assign out = shift_reg;", 1 )

@@ -23,12 +23,16 @@ def generate( dest, precision ):
 #  precision, an integer, the precision of the input binary number and
 #     input random number
 def write_ds_converter_module( f, module_name, precision ):
-   write_line( f, "module " + module_name + "();" )
+   write_line( f, "module " + module_name + "(" )
+   write_line( f, "in,", 1 )
+   write_line( f, "rng,", 1 )
+   write_line( f, "out", 1 )
+   write_line( f, ");" )
    write_line( f, "parameter PRECISION = " + str(precision) + ";", 1 )
    write_line( f, "" )
    write_line( f, "input [PRECISION-1:0] in;", 1 )
    write_line( f, "input [PRECISION-1:0] rng;", 1 )
-   write_line( f, "output out", 1 )
+   write_line( f, "output out;", 1 )
    write_line( f, "" )
    write_line( f, "assign out = (rng < in) ? 1 : 0;", 1 )
    write_line( f, "" )

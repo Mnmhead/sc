@@ -15,7 +15,7 @@ SD_CONVERTER = "sd_converter"
 DS_CONVERTER = "ds_converter"
 SNG = "sng"
 SHIFT = "shift_"
-REG = "_reg"
+REG = "_register"
 
 # n is the number of registers in the shift register
 def shiftreg_name( n ):

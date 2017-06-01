@@ -16,9 +16,9 @@ module sc_dot_product_sim();
    end 
 
    // 15 15 15 15
-   initial datas = 32'b00001111 00001111 00001111 00001111;
+   initial datas = 32'b00001111000011110000111100001111;
    // 10 10 10 10
-   initial weights = 32'b00001010 00001010 00001010 00001010;
+   initial weights = 32'b00001010000010100000101000001010;
 
    integer expected_result;
    initial expected_result = 600;
@@ -30,16 +30,15 @@ module sc_dot_product_sim();
    reg [WIDTH-1:0] seed2;
    initial seed1 = 8'b11110011;
    initial seed2 = 8'b00110001;
-
-   reg [WIDTH-1:0] rng0;
-   lfsr1 LFSR1(.clk(clk), .rst(rst), .seed(seed1), .enable(1), .restart(0), .out(rng0));
-   reg [WIDTH-1:0] rng1;
-   lfsr2 LFSR2(.clk(clk), .rst(rst), .seed(seed2), .enable(1), .restart(0), .out(rng1)); 
+   wire [WIDTH-1:0] rng0;
+   wire [WIDTH-1:0] rng1;
+   lfsr LFSR1(.clk(clk), .rst(rst), .seed(seed1), .enable(1'b1), .restart(1'b0), .out(rng0));
+   lfsr LFSR2(.clk(clk), .rst(rst), .seed(seed2), .enable(1'b1), .restart(1'b0), .out(rng1)); 
 
    // Instantiate the SNGs to produce stochastic bitstreams for all
    // data and weights.
-   reg [DIMENSION-1:0] s_datas;
-   reg [DIMENSION-1:0] s_weights;
+   wire [DIMENSION-1:0] s_datas;
+   wire [DIMENSION-1:0] s_weights;
    genvar d;
    generate
       for(d = 0; d < DIMENSION; d = d + 1) begin : sng_loop
@@ -62,14 +61,13 @@ module sc_dot_product_sim();
 
    // Generate a select stream for the adder.
    //reg [clogb2(DIMENSION)-1:0] sel;
-   reg [2-1:0] sel;
-   counter COUNTER(.clk(clk), .rst(rst), .enable(1), .restart(0), .out(sel));
+   wire [2-1:0] sel;
+   counter COUNTER(.clk(clk), .rst(rst), .enable(1'b1), .restart(1'b0), .out(sel));
 
    // Instantiate the dot product module
    //reg test_rst;
    wire result;
-   reg valid;
-   initial valid = 0; 
+   wire valid;
    sc_dot_product DOT_PRODUCT(
       .clk(clk), 
       .rst(rst), 
@@ -84,6 +82,7 @@ module sc_dot_product_sim();
    wire [WIDTH-1:0] non_scaled_binary_result;
    reg [WIDTH-1:0] last_counter; // 8 bit
    reg last;
+   reg in_stream;
    initial last_counter = 0;
    initial last = 0;
    always @(posedge clk) begin
@@ -129,6 +128,15 @@ module sc_dot_product_sim();
          $display("expected result = %d\n actual result = %d\n", expected_result, dot_product );
          $display("DONE!\n" );
       end
+   end
+   
+   initial begin
+        rst = 1;
+        #(4*CLOCK_PERIOD);
+        rst = 0;
+        #(1000*CLOCK_PERIOD);
+   
+        $stop;
    end
 
 endmodule // sc_dot_product_sim

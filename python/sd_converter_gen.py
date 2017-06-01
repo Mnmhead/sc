@@ -21,14 +21,20 @@ def generate( dest, precision ):
 #  module_name, a string, the name of the module
 #  precision, an integer, the precision of the output binary number
 def write_sd_converter_module( f, module_name, precision ):
-   write_line( f, "module " + module_name + "();" )
+   write_line( f, "module " + module_name + "(" )
+   write_line( f, "clk,", 1 )
+   write_line( f, "rst,", 1 )
+   write_line( f, "in,", 1 )
+   write_line( f, "last,", 1 )
+   write_line( f, "out", 1 )
+   write_line( f, ");" )
    write_line( f, "parameter PRECISION = " + str(precision) + ";", 1 ) 
    write_line( f, "" )
    write_line( f, "input clk;", 1 ) 
    write_line( f, "input rst;", 1 ) 
    write_line( f, "input in;", 1 ) 
-   write_line( f, "input last", 1 ) 
-   write_line( f, "output [PRECISION-1:0] out", 1 ) 
+   write_line( f, "input last;", 1 ) 
+   write_line( f, "output [PRECISION-1:0] out;", 1 ) 
    write_line( f, "" )
    write_line( f, "reg [PRECISION-1:0] count;", 1 ) 
    write_line( f, "" )
