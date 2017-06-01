@@ -1,8 +1,5 @@
-- how to seed LFSRs? Just make sure thier seeds are not the same
-- make a stochastic dot product simulation module, one with SNGs and convertors
+- make a stochastic dot product simulation generation script
 - make a matrix multiply module wrapper that could actually run on the FPGA
-
-- verify all my silly module genration functions work
 
 - Add alaghi_adder tree to arithmetic.py in Vincent's project? Yeah I think I will.
 
