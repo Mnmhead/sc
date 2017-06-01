@@ -26,7 +26,7 @@ def generate( dest, dimensions, rep = "uni", alaghi = False ):
       # two clock cycle delay for standard dot product
       # 1 cycle for multiplication, 1 for addition (single mux)
       delay = 2
-      sc_nadder_gen( dest, dimensions )      
+      sc_nadder_gen.generate( dest, dimensions )      
 
    shiftreg_gen.generate( dest, delay )
 

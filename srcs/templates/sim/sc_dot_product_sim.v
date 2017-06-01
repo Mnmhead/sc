@@ -28,8 +28,8 @@ module sc_dot_product_sim();
    
    reg [WIDTH-1:0] seed1;
    reg [WIDTH-1:0] seed2;
-   initial seed1 = 8'b11110011
-   initial seed2 = 8'b00110001
+   initial seed1 = 8'b11110011;
+   initial seed2 = 8'b00110001;
 
    reg [WIDTH-1:0] rng0;
    lfsr1 LFSR1(.clk(clk), .rst(rst), .seed(seed1), .enable(1), .restart(0), .out(rng0));
@@ -66,9 +66,10 @@ module sc_dot_product_sim();
    counter COUNTER(.clk(clk), .rst(rst), .enable(1), .restart(0), .out(sel));
 
    // Instantiate the dot product module
-   reg test_rst;
+   //reg test_rst;
    wire result;
-   wire valid;
+   reg valid;
+   initial valid = 0; 
    sc_dot_product DOT_PRODUCT(
       .clk(clk), 
       .rst(rst), 
@@ -81,15 +82,17 @@ module sc_dot_product_sim();
 
    // Pipe the result into a sd convertor as soon as valid goes high
    wire [WIDTH-1:0] non_scaled_binary_result;
-   reg in_stream;
-   reg [WIDTH:0] last_counter; 
+   reg [WIDTH-1:0] last_counter; // 8 bit
    reg last;
-   initial in_stream = 0;
    initial last_counter = 0;
    initial last = 0;
    always @(posedge clk) begin
-      if( valid == 1'b1 ) begin
-         if( last_counter[WIDTH] == 1'b1 ) begin
+      if(rst == 1) begin
+         last_counter <= 0;
+         last <= 0;
+         in_stream <= 0;
+      end else if( valid == 1'b1 ) begin
+         if( last_counter == 8'b11111111 ) begin
             last <= 1;
             last_counter <= 0;
          end else begin
@@ -99,8 +102,9 @@ module sc_dot_product_sim();
          
          in_stream <= result;
       end else begin
-         in_stream <= 0;
          last_counter <= 0;
+         last <= 0;
+         in_stream <= 0;
       end
    end
 
@@ -112,8 +116,10 @@ module sc_dot_product_sim();
       .out(non_scaled_binary_result)
    );
 
-   wire [(WIDTH*2) + clogb2(DIMENSION) - 1:0] dot_product;
-   assign dot_product = non_scaled_binary_result * clogb2(DIMENSION) * WIDTH // or 2 ** log2(WIDTH)
+   //wire [(WIDTH*2) + clogb2(DIMENSION) - 1:0] dot_product;
+   //assign dot_product = non_scaled_binary_result * 2^clogb2(DIMENSION) * WIDTH // or 2 ** log2(WIDTH)
+   wire [17:0] dot_product;
+   assign dot_product = non_scaled_binary_result * 4 * 8;
  
    wire done;
    assign done = (last == 1'b1);

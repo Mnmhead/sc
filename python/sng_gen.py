@@ -63,5 +63,3 @@ def write_header_sng( f ):
    write_line( f, "// vander corpi, etc)" )
    write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
    write_line( f, "" )
- 
-generate( "test", 8 )

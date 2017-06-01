@@ -8,9 +8,9 @@ import os
 #	dest, the directory to write the file into
 #  threshold_value, max value this counter reaches (range is [0,threshold])
 def generate( dest, threshold_value ):
-	with open( os.path.join( dest, COUNTER + ".v" ), 'w' ) as f:
-   	write_header_counter( f )
-		write_modular_counter_module( f, COUNTER, threshold_value )
+   with open( os.path.join( dest, COUNTER + ".v" ), 'w' ) as f:
+      write_header_counter( f )
+      write_modular_counter_module( f, COUNTER, threshold_value )
 
 # Writes a counter module.
 # Parameters:

@@ -82,8 +82,6 @@ module sc_dot_product #(
 
    // ochestrate the valid signal to go high when a valid output stream is
    // being produced.
-   // NOOOOOOOOOOO....this means I will have to generate a stupid shift
-   // register as well.....uggggg
    shift_register #(2) (.clk(clk), .rst(rst), .data_in(1), .data_out(valid));
 
 endmodule // sc_dot_product
