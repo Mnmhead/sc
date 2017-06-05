@@ -51,5 +51,3 @@ def write_dot_product_simulation( f, module_name, dimensions, rep = "uni", alagh
    # finally scale the output at the end and print the final results and errors
    # with $display()
    pass
-
-generate( "test_sim" )

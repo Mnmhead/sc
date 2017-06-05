@@ -6,7 +6,7 @@
 
 import argparse
 import os
-import sc_gen
+import sc_matrix_mult_gen
 import tb_gen
 import sim_gen
 
@@ -58,7 +58,11 @@ def cli():
    )
    parser.add_argument(
       '-test', dest='test', action='store', type=str2bool, nargs='?', required=False,
-      default=True, help='Specifies to skip over test bench generation'
+      default=True, help='Selects optional test bench generation'
+   )
+   parser.add_argument(
+      '-sim', dest='sim', action='store', type=str2bool, nargs='?', required=False,
+      default=True, help='Selects optional simulation bench generation' 
    )
    args = parser.parse_args()
    args.rep = str.lower( args.rep )
@@ -92,10 +96,17 @@ def str2bool(v):
 if __name__ == '__main__':
    args = cli()
    print( "Generating Modules..." )
-   sc_gen.generate( args )
+   sc_matrix_mult_gen.generate( args.dest_dir, 
+                                args.batch_size, 
+                                args.input_size, 
+                                args.output_size, 
+                                args.alaghi )
    print( "done!" )
    if args.test:
       print( "Generating Testbenches..." )
       tb_gen.generate( args )
       print( "done!" )
+   if args.sim:
+      print( "Generating Simulation..." )
+      sim_gen.generate( args.dest_dir )
    

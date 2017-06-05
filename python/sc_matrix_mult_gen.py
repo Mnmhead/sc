@@ -21,7 +21,7 @@ def generate( dest, batch, input_features, output_features, alaghi ):
    # Generate the core of matrix multiply, the dot_prodcut module   
    sc_dot_product_gen.generate( dest, input_features, rep="uni", alaghi=alaghi )
 
-   with open( os.path.join( args.dest_dir, MATRIX + ".v" ), 'w' ) as f: 
+   with open( os.path.join( dest, MATRIX + ".v" ), 'w' ) as f: 
       write_header_mat_mult( f )
       write_matrix_module( f, MATRIX, batch, input_features, output_features, alaghi=alaghi )
 
