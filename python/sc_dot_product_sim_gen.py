@@ -3,9 +3,13 @@
 # stochastic matrix multiply. 
 
 from common import *
+import counter_gen
+import lfsr_gen
 import numpy as np
 import os
 import sc_dot_product_gen
+import sd_converter_gen
+import sng_gen
 
 # Generates simulation modules for the following stochastic
 # circuits: dot_product, matrix_multiply
@@ -29,6 +33,9 @@ def generate( dest ):
    # generate the dot product module!
    sc_dot_product_gen.generate( dest, dims )
 
+   with open( os.path.join( dest, "sc_dot_product_sim.v" ), 'w' ) as f:
+      write_dot_product_simulation( f, "sc_dot_product_sim", dims, precision )
+
 def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "uni", alaghi = False ):
    write_line( f, "module sc_dot_product_sim();" )
    write_line( f, "parameter DIMENSION = " + str(dimensions) + ";", 1 )
@@ -45,14 +52,14 @@ def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "
    write_line( f, "always begin", 1 )
    write_line( f, "#(CLOCK_PERIOD/2);", 2 )
    write_line( f, "clk = ~clk;", 2 )
-   write_line( f, "end" )
+   write_line( f, "end", 1 )
    write_line( f, "" )
 
    # generate random data and weights, compute actual binary result
    A = np.random.randint( pow(2, precision), size = dimensions )
    B = np.random.randint( pow(2, precision), size = dimensions )
-   A_str = vector_to_verilog_bit_string( A )
-   B_str = vector_to_verilog_bit_string( B )
+   A_str = vector_to_verilog_bit_string( A, precision )
+   B_str = vector_to_verilog_bit_string( B, precision )
 
    expected_dp = 0
    for d in range(dimensions):
@@ -88,8 +95,8 @@ def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "
    write_line( f, "wire [DIMENSION-1:0] s_weights;", 1 )
    write_line( f, "genvar d;", 1 )
    write_line( f, "generate", 1 )
-   write_line( f, "for(d = 1; d < DIMENSION; d = d + 1) begin : sng_loop", 2 )
-   write_line( f, "sng DATA_SNG(", 13)
+   write_line( f, "for(d = 0; d < DIMENSION; d = d + 1) begin : sng_loop", 2 )
+   write_line( f, "sng DATA_SNG(", 3 )
    write_line( f, ".clk(clk),", 4 )
    write_line( f, ".rst(rst),", 4 )
    write_line( f, ".in(datas[d*WIDTH +: WIDTH]),", 4 )
@@ -165,27 +172,29 @@ def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "
    write_line( f, "" )
    res_width = 2 * precision + clogb2(dimensions)
    write_line( f, "wire [" + str(res_width) + "-1:0] dot_product;", 1 )
+   write_line( f, "assign dot_product = non_scaled_binary_result * " \
+                  + str(dimensions) + " * " + str(pow( 2, precision )) + ";", 1 )
+   write_line( f, "" )
    write_line( f, "wire done;", 1 )
    write_line( f, "assign done = (last == 1'b1);", 1 )
    write_line( f, "always @(*) begin", 1 )
    write_line( f, "if(done) begin", 2 )
-   write_line( f, "$display(\"expected result = %d\n actual result = %d\n\", expected_result, dot_product );", 3 )
-   write_line( f, "$display(\"DONE!\n\" );", 3 )
+   write_line( f, "$display(\"expected result = %d\\n actual result = %d\\n\", expected_result, dot_product );", 3 )
+   write_line( f, "$display(\"DONE!\\n\" );", 3 )
+   write_line( f, "$stop;", 3 )
    write_line( f, "end", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
-   write_Line( f, "initial begin", 1 )
+   write_line( f, "initial begin", 1 )
    write_line( f, "rst = 1;", 2 )
    write_line( f, "#(4*CLOCK_PERIOD);", 2 )
-   write_line( f, "rst = 0;", 1 )
-   delay = 100
-   if alaghi:
-      delay = clogb2(dimensions) + 100
-   write_line( f, "#(" + str(delay) + "*CLOCK_PERIOD);", 2 )
-   write_line( f, "$stop;", 2 )
+   write_line( f, "rst = 0;", 2 )
    write_line( f, "end", 1 )
    write_line( f, "" )
    write_line( f, "endmodule // sc_dot_product_sim" )
+
+def write_sc_dp_header( f ):
+   pass
 
 def vector_to_verilog_bit_string( v, precision ):
    dim = len(v)
