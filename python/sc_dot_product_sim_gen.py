@@ -14,15 +14,12 @@ import sng_gen
 # Generates simulation modules for the following stochastic
 # circuits: dot_product, matrix_multiply
 # args, the parser arguments from generate.py
-def generate( dest ):
-   dims = 4
-   precision = 8
-
+def generate( dest, dimensions, precision ):
    # generate width 8 lfsr
    lfsr_gen.generate( dest, precision ) 
 
    # generate modular counter which counts upto 4 for select streams
-   counter_gen.generate( dest, dims )
+   counter_gen.generate( dest, dimensions )
 
    # generate an sd_convertor which converts to an 8 bit binary number
    sd_converter_gen.generate( dest, precision )
@@ -31,10 +28,10 @@ def generate( dest ):
    sng_gen.generate( dest, precision )
 
    # generate the dot product module!
-   sc_dot_product_gen.generate( dest, dims )
+   sc_dot_product_gen.generate( dest, dimensions )
 
-   with open( os.path.join( dest, "sc_dot_product_sim.v" ), 'w' ) as f:
-      write_dot_product_simulation( f, "sc_dot_product_sim", dims, precision )
+   with open( os.path.join( dest, DOT_PROD_SIM + ".v" ), 'w' ) as f:
+      write_dot_product_simulation( f, DOR_PROD_SIM, dimensions, precision )
 
 def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "uni", alaghi = False ):
    write_line( f, "module sc_dot_product_sim();" )
@@ -212,4 +209,3 @@ def vector_to_verilog_bit_string( v, precision ):
       
    return s
 
-generate( "test_sim" )

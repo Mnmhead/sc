@@ -16,6 +16,7 @@ DS_CONVERTER = "ds_converter"
 SNG = "sng"
 SHIFT = "shift_"
 REG = "_register"
+DOT_PROD_SIM = "sc_dot_product_sim"
 
 # n is the number of registers in the shift register
 def shiftreg_name( n ):
