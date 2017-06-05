@@ -31,7 +31,8 @@ def generate( dest, dimensions, precision ):
    sc_dot_product_gen.generate( dest, dimensions )
 
    with open( os.path.join( dest, DOT_PROD_SIM + ".v" ), 'w' ) as f:
-      write_dot_product_simulation( f, DOR_PROD_SIM, dimensions, precision )
+      write_header_dp_sim( f )
+      write_dot_product_simulation( f, DOT_PROD_SIM, dimensions, precision )
 
 def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "uni", alaghi = False ):
    write_line( f, "module sc_dot_product_sim();" )
@@ -190,8 +191,17 @@ def write_dot_product_simulation( f, module_name, dimensions, precision, rep = "
    write_line( f, "" )
    write_line( f, "endmodule // sc_dot_product_sim" )
 
-def write_sc_dp_header( f ):
-   pass
+# writes header comment for dp sim module
+def write_header_dp_sim( f ):
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "// Create Date: " + get_time() )
+   write_line( f, "//" )
+   write_line( f, "// This module serves as a simulation test bench for the stochastic dot product" )
+   write_line( f, "// module. At the end of simulation the expected binary result and actual" )
+   write_line( f, "// stochastic result are displayed in console." )
+   write_line( f, "//////////////////////////////////////////////////////////////////////////////////" )
+   write_line( f, "" )
+
 
 def vector_to_verilog_bit_string( v, precision ):
    dim = len(v)
@@ -209,3 +219,4 @@ def vector_to_verilog_bit_string( v, precision ):
       
    return s
 
+generate( "test", 4, 8 )
