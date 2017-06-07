@@ -42,6 +42,8 @@ module sc_matrix_multiply_ip(
    
    // Instantiate 2N stochastic number generators for the current
    // input vector and weight vector.
+   reg [BINARY_PRECISION*INPUT_FEATURES-1:0] input_buffer;
+   reg [BINARY_PRECISION*INPUT_FEATURES-1:0] weight_buffer;
    wire [INPUT_FEATURES-1:0] stoch_inputs;
    wire [INPUT_FEATURES-1:0] stoch_weights;
    genvar n;
@@ -50,13 +52,13 @@ module sc_matrix_multiply_ip(
          sng INPUT_SNG( 
             .clk(clk), 
             .rst(rst), 
-            .in(input_data[(n*BINARY_PRECISION) +: BINARY_PRECISION]), 
+            .in(input_buffer[(n*BINARY_PRECISION) +: BINARY_PRECISION]), 
             .out(stoch_inputs[n])
          );
          sng WEIGHT_SNG(
             .clk(clk),
             .rst(rst),
-            .in(weight_data[(n*BINARY_PRECISION) +: BINARY_PRECISION]),
+            .in(weight_buffer[(n*BINARY_PRECISION) +: BINARY_PRECISION]),
             .out(stoch_weights[n])
          );
       end
@@ -137,13 +139,29 @@ module sc_matrix_multiply_ip(
    reg [31:0] inAddr_reg;
    reg [31:0] wAddr_reg;
    reg [31:0] outAddr_reg;
+   reg [clogb2(batch)-1:0] batchIdx;
+   reg [clogb2(output_features)-1:0] outIdx;
+   initial batchIdx = 0;
+   initial outIdx = 0;
    //parameter initInAddr = 0x2000000;
    //parameter initWAddr = 0x30000000;
    //parameter initOutAddr = 0x40000000;
+   //parameter readSize = BINARY_PRECISION * INPUT_FEATURES; // (in bits)
+   //parameter write_size = OUTPUT_PRECISION * OUTPUT_FEATURES; // (in bits)
+   //initial inAddr_reg = initInAddr;
+   //initial wAddr_reg = initWAddr;
+   //initial outAddr_reg = initOutAddr;
    assign inputAddr = inAddr_reg;
    assign weightAddr = wAddr_reg;
    assign outAddr = outAddr_reg;
 
+   reg [BINARY_PRECISION*INPUT_FEATURES-1:0] next_inputs;
+   reg [BINARY_PRECISION*INPUT_FEATURES-1:0] next_weights;
+
+
+   // NOTE: a critical assumption made by this code is that
+   // a read only takes 1 clock cycle...I hope this is an ok assumption
+   // to make.
    always @(posedge clk) begin
    
       case(sm)
@@ -158,17 +176,21 @@ module sc_matrix_multiply_ip(
 
          INIT:
             begin
-               // set initial addresses?
                // read first row
-               // start computation
-               // transition to READ in order to read the next rows 
-               // and save the data in a register
+               input_buffer <= input_data;
+               weight_buffer <= weight_data;
+               // increment Reading addresses and transition to READ
+               //inAddr_reg <= inAddr_reg + readSize;
+               wAddr_reg <= wAddr_reg + readSize;
+               sm <= READ;
             end
 
          READ:
             begin
-               // increment idxs
                // read the next row and save it in registers
+               next_inputs <= input_data;
+               next_weights <= weight_data;
+               sm <= COMPUTE;
             end
 
          COMPUTE:
@@ -177,6 +199,21 @@ module sc_matrix_multiply_ip(
                // and we wait for last to go high
                // when last goes high, transition to READ, but after setting the new SNG input
                // but if there is no row to read... transition to FINISH...
+               if(last == 1'b1) begin
+                  // pipe the next inputs into the SNGs
+                  input_buffer <= next_inputs;
+                  weight_buffer <= next_weights;
+                  // increment reading and writing addresses ( we just finished a row)
+                  inAddr_reg <= inAddr_reg + readSize;
+                  wAddr_reg <= wAddr_reg + readSize; 
+                  outAddr_reg <= outAddr + writeSize;
+                  // transition back to the READ state (in order to read next inputs)
+                  if 
+                  sm <= READ;
+               end else begin
+                  sm <= 
+               end
+
             end
 
          FINISH:
@@ -190,4 +227,4 @@ module sc_matrix_multiply_ip(
       endcase
    end
 
-endmodule // sc_matrix_multiply_wrapper
+endmodule // sc_matrix_multiply_ip
