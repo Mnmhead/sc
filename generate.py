@@ -100,12 +100,9 @@ if __name__ == '__main__':
                                 args.batch_size, 
                                 args.input_size, 
                                 args.output_size, 
-                                args.alaghi )
+                                args.alaghi,
+                                test=args.test )
    print( "done!" )
-   if args.test:
-      print( "Generating Testbenches..." )
-      tb_gen.generate( args )
-      print( "done!" )
    if args.sim:
       print( "Generating Simulation..." )
       sim_gen.generate( args.dest_dir )

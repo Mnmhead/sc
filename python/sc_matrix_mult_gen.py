@@ -353,4 +353,3 @@ def int_to_n_length_binary( num, n ):
 
    return b_str
 
-generate( "l", 4,4,4 )
