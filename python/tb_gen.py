@@ -744,6 +744,8 @@ def write_matrix_stream( f, mtrx, length ):
 
       f.write( m_str + "\n" )
 
+# This function could be facoted out to the arithmetic directory in pysc.
+# Also pysc's sc_dot_product could call this function?
 def alaghi_adder( inputs ):
    (dimensions, length) = inputs.shape
    dims = int(2 ** clogb2(dimensions))

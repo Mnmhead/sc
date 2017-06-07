@@ -2,6 +2,7 @@
 # This file contains common code shared throughout the generation scripts in this repo.
 
 import math
+import os
 from time import gmtime, strftime
 
 # shared file names
@@ -42,3 +43,18 @@ def clogb2( x ):
 # Computes the floor of log base 2 of input.
 def flogb2( x ):
    return int(math.floor( math.log( x, 2 ) ))
+
+# 
+def makeTestDir( parentDir ):
+   if parentDir is str:
+      print( "killerrr" )
+   # make a folder for the testbenches called 'tb'
+   # make a folder call 'data' within 'tb'
+   tb = parentDir + "/tb"
+   if not os.path.exists( tb ):
+      os.makedirs( tb )
+   data = tb + "/data"
+   if not os.path.exists( data ):
+      os.makedirs( data )
+
+   return (tb, data)
